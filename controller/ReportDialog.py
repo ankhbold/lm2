@@ -73,7 +73,7 @@ class ReportDialog(QDialog, Ui_ReportDialog, DatabaseHelper):
     @pyqtSlot(int)
     def on_begin_year_sbox_valueChanged(self, sbox_value):
 
-        print "asdfa"
+        print
 
         self.end_date = (str(sbox_value + 1) + '-01-01')
         self.end_date = datetime.strptime(self.end_date, "%Y-%m-%d").date()

@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="230184b6-36ca-481f-ae56-5cc8022c11fe" name="QGIS" url="http://localhost">
-        <fileTransfer port="0" mountedRoot="C:\Users\B.Ankhbold\.qgis2\python\plugins\lm2" accessType="MOUNT" />
+        <fileTransfer port="0" mountedRoot="C:\Users\B.Ankhbold\.qgis2\python\plugins" accessType="MOUNT" />
       </webServer>
     </option>
   </component>

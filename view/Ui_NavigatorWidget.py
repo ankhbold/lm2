@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\work\LAND_MANAGER\lm2\view\NavigatorWidget.ui'
+# Form implementation generated from reading ui file '.\NavigatorWidget.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -48,7 +48,7 @@ class Ui_NavigatorWidget(object):
         self.scrollArea.setWidgetResizable(False)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, -33, 419, 664))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 419, 664))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.tabWidget = QtGui.QTabWidget(self.scrollAreaWidgetContents)
         self.tabWidget.setGeometry(QtCore.QRect(10, 60, 386, 571))
@@ -865,6 +865,12 @@ class Ui_NavigatorWidget(object):
         self.personal_record_edit = QtGui.QLineEdit(self.groupBox_18)
         self.personal_record_edit.setGeometry(QtCore.QRect(11, 180, 168, 22))
         self.personal_record_edit.setObjectName(_fromUtf8("personal_record_edit"))
+        self.record_status_cbox = QtGui.QComboBox(self.groupBox_18)
+        self.record_status_cbox.setGeometry(QtCore.QRect(190, 180, 171, 22))
+        self.record_status_cbox.setObjectName(_fromUtf8("record_status_cbox"))
+        self.label_85 = QtGui.QLabel(self.groupBox_18)
+        self.label_85.setGeometry(QtCore.QRect(190, 165, 171, 16))
+        self.label_85.setObjectName(_fromUtf8("label_85"))
         self.groupBox_19 = QtGui.QGroupBox(self.record_tab)
         self.groupBox_19.setGeometry(QtCore.QRect(5, 255, 371, 246))
         self.groupBox_19.setObjectName(_fromUtf8("groupBox_19"))
@@ -1145,7 +1151,7 @@ class Ui_NavigatorWidget(object):
         NavigatorWidget.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(NavigatorWidget)
-        self.tabWidget.setCurrentIndex(8)
+        self.tabWidget.setCurrentIndex(7)
         QtCore.QMetaObject.connectSlotsByName(NavigatorWidget)
         NavigatorWidget.setTabOrder(self.working_l1_cbox, self.working_l2_cbox)
         NavigatorWidget.setTabOrder(self.working_l2_cbox, self.tabWidget)
@@ -1411,6 +1417,7 @@ class Ui_NavigatorWidget(object):
         self.record_find_button.setText(_translate("NavigatorWidget", "Find", None))
         self.record_results_label.setText(_translate("NavigatorWidget", "Results:", None))
         self.label_74.setText(_translate("NavigatorWidget", "Personal / Company ID", None))
+        self.label_85.setText(_translate("NavigatorWidget", "Record Status", None))
         self.groupBox_19.setTitle(_translate("NavigatorWidget", "Results", None))
         self.record_delete_button.setText(_translate("NavigatorWidget", "Delete", None))
         self.record_edit_button.setText(_translate("NavigatorWidget", "Edit", None))

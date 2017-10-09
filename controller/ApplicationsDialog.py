@@ -47,6 +47,7 @@ from ..model.SetApplicationTypeLanduseType import *
 from ..model.SetRightTypeApplicationType import *
 from ..model.SetValidation import *
 from ..model.ContractSearch import *
+from ..model.RecordSearch import *
 from ..model.DatabaseHelper import *
 from ..model.SetTaxAndPriceZone import *
 from ..model import SettingsConstants
@@ -1753,6 +1754,12 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
                                            self.tr("This applicant not active contract."))
                     return
 
+            if application_type_code == ApplicationType.change_ownership:
+                if not self.__is_active_record(person.person_id):
+                    PluginUtils.show_error(self, self.tr("Invalid Applicant"),
+                                           self.tr("This applicant not active owner record."))
+                    return
+
             try:
                 if application_type_code == 1:
                     giving_onwer_count = self.session.query(CtApplicationPersonRole.application)\
@@ -3256,6 +3263,15 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
         item.setText(self.__wrap(officer_full, 200))
         # item.adjustSizeToText()
 
+    def __duplicate_new_applicant(self, new_person_id):
+
+        is_duplicate = False
+        for row in range(self.applicant_twidget.rowCount()):
+            person_id = self.applicant_twidget.item(row, APPLICANT_PERSON_ID).text()
+            if person_id == new_person_id:
+                is_duplicate = True
+        return is_duplicate
+
     def __copy_new_right_holder_from_navigator(self):
 
         selected_persons = []
@@ -3264,6 +3280,10 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
         for item in self.navigator.person_results_twidget.selectedItems():
             person_id = item.data(Qt.UserRole)
 
+            if self.__duplicate_new_applicant(person_id):
+                PluginUtils.show_error(self, self.tr("Invalid Applicant"),
+                                       self.tr("This new right holder duplicate applicant."))
+                return
             try:
                 person = self.session.query(BsPerson).filter_by(person_id=person_id).one()
                 role_ref = self.session.query(ClPersonRole).filter_by(
@@ -3674,11 +3694,22 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
 
     def __is_active_contract(self, person_id):
 
-        active_contract_contract = self.session.query(ContractSearch).\
+        active_contract_count = self.session.query(ContractSearch).\
             filter(ContractSearch.person_id == person_id). \
             filter(ContractSearch.status == 20).count()
 
-        if active_contract_contract == 0:
+        if active_contract_count == 0:
+            return False
+        else:
+            return True
+
+    def __is_active_record(self, person_id):
+
+        active_record_count= self.session.query(RecordSearch).\
+            filter(RecordSearch.person_id == person_id). \
+            filter(RecordSearch.status == 20).count()
+
+        if active_record_count == 0:
             return False
         else:
             return True

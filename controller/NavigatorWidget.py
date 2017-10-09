@@ -42,6 +42,7 @@ from ..model.CaParcelConservation import *
 from ..model.ClConservationType import *
 from ..model.ClPollutionType import *
 from ..model.ClContractStatus import *
+from ..model.ClRecordStatus import *
 from ..model.CaParcelPollution import *
 from ..model.ParcelFeeReport import *
 from ..model.ParcelTaxReport import *
@@ -287,6 +288,7 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
                             ClApplicationType.code != ApplicationType.right_land)).all()
             cl_person_type = self.session.query(ClPersonType).all()
             cl_contract_status = self.session.query(ClContractStatus).all()
+            cl_record_status = self.session.query(ClRecordStatus).all()
 
             set_surveyors = self.session.query(SetSurveyor).all()
             set_roles = self.session.query(SetRole).order_by(SetRole.user_name)
@@ -306,6 +308,7 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
         self.person_type_cbox.addItem("*", -1)
         self.application_type_cbox.addItem("*", -1)
         self.contract_status_cbox.addItem("*", -1)
+        self.record_status_cbox.addItem("*", -1)
 
         self.case_status_cbox.addItem("*", -1)
         self.case_status_cbox.addItem(self.tr("Completed"), Constants.CASE_STATUS_COMPLETED)
@@ -361,6 +364,10 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
         if cl_contract_status is not None:
             for status in cl_contract_status:
                 self.contract_status_cbox.addItem(status.description, status)
+
+        if cl_record_status is not None:
+            for status in cl_record_status:
+                self.record_status_cbox.addItem(status.description, status)
 
         current_user = DatabaseUtils.current_user()
         restrictions = current_user.restriction_au_level2.split(",")
@@ -985,7 +992,7 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
                 else:
                     sql = sql + "UNION" + "\n"
 
-                select = "SELECT record.record_no, record.record_date, person.person_id, person.name, person.middle_name, person.first_name, parcel.parcel_id, application.app_no, decision.decision_no, au2.code as au2_code " \
+                select = "SELECT record.status, record.record_no, record.record_date, person.person_id, person.name, person.middle_name, person.first_name, parcel.parcel_id, application.app_no, decision.decision_no, au2.code as au2_code " \
                          "FROM s{0}.ct_ownership_record record " \
                          "LEFT JOIN s{0}.ct_record_application_role rec_app on rec_app.record = record.record_no " \
                          "LEFT JOIN s{0}.ct_application application ON application.app_no = rec_app.application " \
@@ -1770,6 +1777,13 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
                 filter_is_set = True
                 value = "%" + self.personal_record_edit.text() + "%"
                 records = records.filter(RecordSearch.person_id.ilike(value))
+
+            if self.record_status_cbox.currentIndex() != -1:
+                if not self.record_status_cbox.itemData(self.record_status_cbox.currentIndex()) == -1:
+                    filter_is_set = True
+                    status = self.record_status_cbox.itemData(self.record_status_cbox.currentIndex()).code
+
+                    records = records.filter(RecordSearch.status == status)
 
             count = 0
 

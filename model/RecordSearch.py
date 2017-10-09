@@ -22,3 +22,4 @@ class RecordSearch(Base):
     app_no = Column(String)
     decision_no = Column(String)
     au2_code = Column(String)
+    status = Column(Integer)

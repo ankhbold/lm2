@@ -46,6 +46,7 @@ from ..model.SetPersonTypeApplicationType import *
 from ..model.SetApplicationTypeLanduseType import *
 from ..model.SetRightTypeApplicationType import *
 from ..model.SetValidation import *
+from ..model.ContractSearch import *
 from ..model.DatabaseHelper import *
 from ..model.SetTaxAndPriceZone import *
 from ..model import SettingsConstants
@@ -1746,6 +1747,11 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
             except SQLAlchemyError, e:
                 PluginUtils.show_error(self, self.tr("File Error"), self.tr("Error in line {0}: {1}").format(currentframe().f_lineno, e.message))
                 return
+            if application_type_code == ApplicationType.transfer_possession_right:
+                if not self.__is_active_contract(person.person_id):
+                    PluginUtils.show_error(self, self.tr("Invalid Applicant"),
+                                           self.tr("This applicant not active contract."))
+                    return
 
             try:
                 if application_type_code == 1:
@@ -3665,6 +3671,18 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
             return
 
         self.found_decision_edit.setText(decision.decision_no)
+
+    def __is_active_contract(self, person_id):
+
+        active_contract_contract = self.session.query(ContractSearch).\
+            filter(ContractSearch.person_id == person_id). \
+            filter(ContractSearch.status == 20).count()
+
+        if active_contract_contract == 0:
+            return False
+        else:
+            return True
+
 
     def __copy_applicant_from_navigator(self):
 

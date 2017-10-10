@@ -1277,12 +1277,14 @@ class PrintDialog(QDialog, Ui_PrintDialog):
             return {Constants.CADASTRE_PAGE_FIRST_NUMBER: first_no, Constants.CADASTRE_PAGE_LAST_NUMBER: last_no,
                     Constants.CADASTRE_PAGE_CURRENT_NUMBER: current_no}
         else:
-            return -1
+            return 0
 
     def __calculate_cadastre_page_no(self):
 
         cadastre_page_settings = self.__cadastre_page_settings()
-
+        if cadastre_page_settings == 0:
+            self.error_label.setText(self.tr("The cadastre page number is out of range. Change the Admin Settings."))
+            return
         max_page_no = cadastre_page_settings[Constants.CADASTRE_PAGE_CURRENT_NUMBER] + 1
 
         if cadastre_page_settings[Constants.CADASTRE_PAGE_FIRST_NUMBER] <= max_page_no \
@@ -1291,11 +1293,14 @@ class PrintDialog(QDialog, Ui_PrintDialog):
         else:
             self.error_label.setText(self.tr("The cadastre page number is out of range. Change the Admin Settings."))
             self.error_label.setStyleSheet(Constants.ERROR_TWIDGET_STYLESHEET)
-            return -1
+            return 0
 
     @pyqtSlot(int)
     def on_cadastre_checkbox_stateChanged(self, state):
 
+        if self.__calculate_cadastre_page_no() == 0:
+            self.error_label.setText(self.tr("The cadastre page number is out of range. Change the Admin Settings."))
+            return
         cadastre_page_number = self.__calculate_cadastre_page_no()
         if cadastre_page_number == None:
             cadastre_page_number = 0

@@ -68,6 +68,7 @@ from ..utils.SessionHandler import SessionHandler
 from ..utils.PluginUtils import PluginUtils
 from ..utils.DatabaseUtils import DatabaseUtils
 from ..utils.PasturePath import *
+from ..utils.LayerUtils import *
 
 DOC_PROVIDED_COLUMN = 0
 DOC_FILE_TYPE_COLUMN = 1
@@ -110,10 +111,11 @@ CO_OWNERSHIP_FIRST_NAME = 3
 
 class ApplicationsPastureDialog(QDialog, Ui_ApplicationsPastureDialog, DatabaseHelper):
 
-    def __init__(self, application, navigator, attribute_update=False, parent=None):
+    def __init__(self, plugin,application, navigator, attribute_update=False, parent=None):
 
         super(ApplicationsPastureDialog, self).__init__(parent)
         DatabaseHelper.__init__(self)
+        self.plugin = plugin
         self.navigator = navigator
         self.attribute_update = attribute_update
 
@@ -2585,6 +2587,8 @@ class ApplicationsPastureDialog(QDialog, Ui_ApplicationsPastureDialog, DatabaseH
     def on_boundary_add_button_clicked(self):
 
         row = self.result_boundary_twidget.currentRow()
+        if row == -1:
+            return
         boundary_code = self.result_boundary_twidget.item(row, 0).data(Qt.UserRole)
 
         is_register = False
@@ -2659,6 +2663,8 @@ class ApplicationsPastureDialog(QDialog, Ui_ApplicationsPastureDialog, DatabaseH
     def on_parcel_add_button_clicked(self):
 
         row = self.result_parcel_twidget.currentRow()
+        if row == -1:
+            return
         parcel_id = self.result_parcel_twidget.item(row, 0).data(Qt.UserRole)
 
         is_register = False
@@ -2859,3 +2865,45 @@ class ApplicationsPastureDialog(QDialog, Ui_ApplicationsPastureDialog, DatabaseH
             count += 1
 
             self.pasture_type_cbox.removeItem(self.pasture_type_cbox.findData(code))
+
+    @pyqtSlot(QTableWidgetItem)
+    def on_assigned_parcel_twidget_itemDoubleClicked(self, item):
+
+        row = self.assigned_parcel_twidget.currentRow()
+        parcel_id = self.assigned_parcel_twidget.item(row, 0).data(Qt.UserRole)
+        self.__zoom_to_parcel(parcel_id)
+
+    def __zoom_to_parcel(self, parcel_id, layer_name = None):
+
+        LayerUtils.deselect_all()
+        if layer_name is None:
+            if len(parcel_id) == 12:
+                layer_name = "ca_pasture_parcel"
+
+        layer = LayerUtils.layer_by_data_source("s" + DatabaseUtils.current_working_soum_schema(), layer_name)
+
+        restrictions = DatabaseUtils.working_l2_code()
+        if layer is None:
+            layer = LayerUtils.load_layer_by_name(layer_name, "parcel_id", restrictions)
+
+        exp_string = ""
+
+        if exp_string == "":
+            exp_string = "parcel_id = \'" + parcel_id  + "\'"
+        else:
+            exp_string += " or parcel_id = \'" + parcel_id  + "\'"
+
+        request = QgsFeatureRequest()
+        request.setFilterExpression(exp_string)
+
+        feature_ids = []
+        iterator = layer.getFeatures(request)
+
+        for feature in iterator:
+            feature_ids.append(feature.id())
+
+        if len(feature_ids) == 0:
+            self.error_label.setText(self.tr("No parcel assigned"))
+
+        layer.setSelectedFeatures(feature_ids)
+        self.plugin.iface.mapCanvas().zoomToSelected(layer)

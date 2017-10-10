@@ -503,7 +503,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         DatabaseUtils.set_working_schema()
         application = PluginUtils.create_new_application()
-        self.current_dialog = ApplicationsPastureDialog(application, self, False, self.plugin.iface.mainWindow())
+        self.current_dialog = ApplicationsPastureDialog(self.plugin, application, self, False, self.plugin.iface.mainWindow())
         self.current_dialog.setModal(False)
         self.current_dialog.rejected.connect(self.on_current_dialog_closed)
         DialogInspector().set_dialog_visible(True)
@@ -549,103 +549,103 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
     def __pasture_applications(self):
 
-        try:
-            applications = self.session.query(ApplicationPastureSearch)
-            filter_is_set = False
-            sub = self.session.query(ApplicationPastureSearch, func.row_number().over(partition_by = ApplicationPastureSearch.app_no, order_by = (desc(ApplicationPastureSearch.status_date), desc(ApplicationPastureSearch.status))).label("row_number")).subquery()
-            applications = applications.select_entity_from(sub).filter(sub.c.row_number == 1)
-            applications = applications.filter(or_(ApplicationPastureSearch.app_type == ApplicationType.legitimate_rights,
-                       ApplicationPastureSearch.app_type == ApplicationType.pasture_use))
-            if self.pasture_group_cbox.currentIndex() != -1:
-                if not self.pasture_group_cbox.itemData(self.pasture_group_cbox.currentIndex()) == -1:
-                    filter_is_set = True
-                    group_no = self.pasture_group_cbox.itemData(self.pasture_group_cbox.currentIndex())
-
-                    applications = applications.filter(ApplicationPastureSearch.group_no == group_no)
-
-            if self.pasture_type_cbox.currentIndex() != -1:
-                if not self.pasture_type_cbox.itemData(self.pasture_type_cbox.currentIndex()) == -1:
-                    filter_is_set = True
-                    pasture_type = self.pasture_type_cbox.itemData(self.pasture_type_cbox.currentIndex())
-                    applications = applications.filter(ApplicationPastureSearch.pasture_type == pasture_type)
-
-            if self.pasture_app_no_edit.text():
+        # try:
+        applications = self.session.query(ApplicationPastureSearch)
+        filter_is_set = False
+        sub = self.session.query(ApplicationPastureSearch, func.row_number().over(partition_by = ApplicationPastureSearch.app_no, order_by = (desc(ApplicationPastureSearch.status_date), desc(ApplicationPastureSearch.status))).label("row_number")).subquery()
+        applications = applications.select_entity_from(sub).filter(sub.c.row_number == 1)
+        applications = applications.filter(or_(ApplicationPastureSearch.app_type == ApplicationType.legitimate_rights,
+                   ApplicationPastureSearch.app_type == ApplicationType.pasture_use))
+        if self.pasture_group_cbox.currentIndex() != -1:
+            if not self.pasture_group_cbox.itemData(self.pasture_group_cbox.currentIndex()) == -1:
                 filter_is_set = True
-                app_no = "%" + self.pasture_app_no_edit.text() + "%"
-                applications = applications.filter(ApplicationPastureSearch.app_no.ilike(app_no))
+                group_no = self.pasture_group_cbox.itemData(self.pasture_group_cbox.currentIndex())
 
-            if self.member_name_edit.text():
+                applications = applications.filter(ApplicationPastureSearch.group_no == group_no)
+
+        if self.pasture_type_cbox.currentIndex() != -1:
+            if not self.pasture_type_cbox.itemData(self.pasture_type_cbox.currentIndex()) == -1:
                 filter_is_set = True
-                right_holder = self.member_name_edit.text()
-                if "," in right_holder:
-                    right_holder_strings = right_holder.split(",")
-                    surname = "%" + right_holder_strings[0].strip() + "%"
-                    first_name = "%" + right_holder_strings[1].strip() + "%"
-                    applications = applications.filter(and_(func.lower(ApplicationPastureSearch.name).ilike(func.lower(surname)), func.lower(ApplicationPastureSearch.first_name).ilike(func.lower(first_name))))
-                else:
-                    right_holder = "%" + self.member_name_edit.text() + "%"
-                    applications = applications.filter(or_(func.lower(ApplicationPastureSearch.name).ilike(func.lower(right_holder)), func.lower(ApplicationPastureSearch.first_name).ilike(func.lower(right_holder)), func.lower(ApplicationPastureSearch.middle_name).ilike(func.lower(right_holder))))
+                pasture_type = self.pasture_type_cbox.itemData(self.pasture_type_cbox.currentIndex())
+                applications = applications.filter(ApplicationPastureSearch.pasture_type == pasture_type)
 
-            if self.pasture_parcel_id_edit.text():
-                filter_is_set = True
-                parcel_no = "%" + self.pasture_parcel_id_edit.text() + "%"
+        if self.pasture_app_no_edit.text():
+            filter_is_set = True
+            app_no = "%" + self.pasture_app_no_edit.text() + "%"
+            applications = applications.filter(ApplicationPastureSearch.app_no.ilike(app_no))
 
-                applications = applications.filter(ApplicationPastureSearch.parcel_id.ilike(parcel_no))
+        if self.member_name_edit.text():
+            filter_is_set = True
+            right_holder = self.member_name_edit.text()
+            if "," in right_holder:
+                right_holder_strings = right_holder.split(",")
+                surname = "%" + right_holder_strings[0].strip() + "%"
+                first_name = "%" + right_holder_strings[1].strip() + "%"
+                applications = applications.filter(and_(func.lower(ApplicationPastureSearch.name).ilike(func.lower(surname)), func.lower(ApplicationPastureSearch.first_name).ilike(func.lower(first_name))))
+            else:
+                right_holder = "%" + self.member_name_edit.text() + "%"
+                applications = applications.filter(or_(func.lower(ApplicationPastureSearch.name).ilike(func.lower(right_holder)), func.lower(ApplicationPastureSearch.first_name).ilike(func.lower(right_holder)), func.lower(ApplicationPastureSearch.middle_name).ilike(func.lower(right_holder))))
 
-            if self.member_register_edit.text():
-                filter_is_set = True
-                register_no = "%" + self.member_register_edit.text() + "%"
-                applications = applications.filter(ApplicationPastureSearch.person_id.ilike(register_no))
+        if self.pasture_parcel_id_edit.text():
+            filter_is_set = True
+            parcel_no = "%" + self.pasture_parcel_id_edit.text() + "%"
 
-            if self.pasture_contract_no_edit.text():
-                filter_is_set = True
-                contract_num = "%" + self.pasture_contract_no_edit.text() + "%"
-                applications = applications.filter(or_(ApplicationPastureSearch.contract_no.ilike(contract_num), ApplicationPastureSearch.record_no.ilike(contract_num)))
+            applications = applications.filter(ApplicationPastureSearch.parcel_id.ilike(parcel_no))
+
+        if self.member_register_edit.text():
+            filter_is_set = True
+            register_no = "%" + self.member_register_edit.text() + "%"
+            applications = applications.filter(ApplicationPastureSearch.person_id.ilike(register_no))
+
+        if self.pasture_contract_no_edit.text():
+            filter_is_set = True
+            contract_num = "%" + self.pasture_contract_no_edit.text() + "%"
+            applications = applications.filter(or_(ApplicationPastureSearch.contract_no.ilike(contract_num), ApplicationPastureSearch.record_no.ilike(contract_num)))
 
 
-            if self.pasture_date_cbox.isChecked():
-                filter_is_set = True
-                qt_date = self.pasture_app_date_edit.date().toString(Constants.DATABASE_DATE_FORMAT)
-                python_date = datetime.strptime(str(qt_date), Constants.PYTHON_DATE_FORMAT)
+        if self.pasture_date_cbox.isChecked():
+            filter_is_set = True
+            qt_date = self.pasture_app_date_edit.date().toString(Constants.DATABASE_DATE_FORMAT)
+            python_date = datetime.strptime(str(qt_date), Constants.PYTHON_DATE_FORMAT)
 
-                applications = applications.filter(ApplicationPastureSearch.app_timestamp >= python_date)
+            applications = applications.filter(ApplicationPastureSearch.app_timestamp >= python_date)
 
-            count = 0
+        count = 0
 
-            self.__remove_pasture_items()
+        self.__remove_pasture_items()
 
-            if applications.distinct(ApplicationPastureSearch.app_no).count() == 0:
-                self.error_label.setText(self.tr("No applications found for this search filter."))
-                return
-
-            if filter_is_set is False:
-                self.error_label.setText(self.tr("Please specify a search filter."))
-                return
-
-            for application in applications.distinct(ApplicationPastureSearch.app_no, ApplicationPastureSearch.status).all():
-
-                app_type = "" if not application.app_type_ref else application.app_type_ref.description
-                item = QTableWidgetItem(str(application.app_no) + " ( " + unicode(app_type) + " )")
-                if application.status == 9:
-                    item.setBackground(Qt.blue)
-                elif application.status == 7:
-                    item.setBackground(Qt.green)
-                elif application.status == 6:
-                    item.setBackground(Qt.gray)
-                else:
-                    item.setBackground(Qt.yellow)
-                item.setIcon(QIcon(QPixmap(":/plugins/lm2/application.png")))
-                item.setData(Qt.UserRole, application.app_no)
-                self.pasture_results_twidget.insertRow(count)
-                self.pasture_results_twidget.setItem(count, 0, item)
-                count += 1
-
-            self.error_label.setText("")
-            self.pasture_results_label.setText(self.tr("Results: ") + str(count))
-
-        except SQLAlchemyError, e:
-            PluginUtils.show_message(self, self.tr("LM2", "Sql Error"), e.message)
+        if applications.distinct(ApplicationPastureSearch.app_no).count() == 0:
+            self.error_label.setText(self.tr("No applications found for this search filter."))
             return
+
+        if filter_is_set is False:
+            self.error_label.setText(self.tr("Please specify a search filter."))
+            return
+
+        for application in applications.distinct(ApplicationPastureSearch.app_no, ApplicationPastureSearch.status).all():
+
+            app_type = "" if not application.app_type_ref else application.app_type_ref.description
+            item = QTableWidgetItem(str(application.app_no) + " ( " + unicode(app_type) + " )")
+            if application.status == 9:
+                item.setBackground(Qt.blue)
+            elif application.status == 7:
+                item.setBackground(Qt.green)
+            elif application.status == 6:
+                item.setBackground(Qt.gray)
+            else:
+                item.setBackground(Qt.yellow)
+            item.setIcon(QIcon(QPixmap(":/plugins/lm2/application.png")))
+            item.setData(Qt.UserRole, application.app_no)
+            self.pasture_results_twidget.insertRow(count)
+            self.pasture_results_twidget.setItem(count, 0, item)
+            count += 1
+
+        self.error_label.setText("")
+        self.pasture_results_label.setText(self.tr("Results: ") + str(count))
+
+        # except SQLAlchemyError, e:
+        #     PluginUtils.show_message(self, self.tr("LM2", "Sql Error"), e.message)
+        #     return
 
     @pyqtSlot(QTableWidgetItem)
     def on_pasture_results_twidget_itemDoubleClicked(self, item):
@@ -656,7 +656,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         app_instance = self.__selected_application()
 
         if app_instance is not None:
-            self.current_dialog = ApplicationsPastureDialog(app_instance, self, True, self.plugin.iface.mainWindow())
+            self.current_dialog = ApplicationsPastureDialog(self.plugin,app_instance, self, True, self.plugin.iface.mainWindow())
             DialogInspector().set_dialog_visible(True)
             self.current_dialog.rejected.connect(self.on_current_dialog_closed)
             self.current_dialog.setModal(False)
@@ -700,7 +700,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         app_instance = self.__selected_application()
 
         if app_instance is not None:
-            self.current_dialog = ApplicationsPastureDialog(app_instance, self, True, self.plugin.iface.mainWindow())
+            self.current_dialog = ApplicationsPastureDialog(self.plugin, app_instance, self, True, self.plugin.iface.mainWindow())
             DialogInspector().set_dialog_visible(True)
             self.current_dialog.rejected.connect(self.on_current_dialog_closed)
             self.current_dialog.setModal(False)

@@ -128,6 +128,7 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         self.zone_fid = None
 
         self.session = SessionHandler().session_instance()
+        self.__set_schema()
         self.__setup_combo_boxes()
         self.__load_settings()
         self.__setup_codelist_table_widget()
@@ -195,7 +196,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         equipment_list = []
         users_list = []
 
-        session = SessionHandler().session_instance()
         try:
             equipment_list = self.session.query(ClEquipmentList).all()
             users_list = self.session.query(SetRole).all()
@@ -272,7 +272,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
     def __set_up_feezone_cbox(self, l1_codes, l2_codes):
 
-        session = SessionHandler().session_instance()
         locations1 = self.session.query(SetFeeZone.location, SetFeeZone.code).distinct(). \
             filter(SetFeeZone.geometry.ST_Within(AuLevel1.geometry)). \
             filter(AuLevel1.code.in_(l1_codes)). \
@@ -303,7 +302,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
     def __set_up_taxzone_cbox(self, l1_codes, l2_codes):
 
-        session = SessionHandler().session_instance()
         locations1 = self.session.query(SetTaxAndPriceZone.location, SetTaxAndPriceZone.code).distinct(). \
             filter(SetTaxAndPriceZone.geometry.ST_Within(AuLevel1.geometry)). \
             filter(AuLevel1.code.in_(l1_codes)). \
@@ -473,7 +471,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         num_rows = self.equipment_twidget.rowCount()
         try:
             for row in range(num_rows):
-                session = SessionHandler().session_instance()
                 item = self.equipment_twidget.item(row,0)
                 id = item.data(Qt.UserRole)
                 equipment = self.session.query(SetEquipment).filter(SetEquipment.id == id).one()
@@ -498,7 +495,7 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
                 item = self.equipment_twidget.item(row,10)
                 equipment.soum = item.data(Qt.UserRole)
 
-                session.add(equipment)
+                self.session.add(equipment)
 
         except exc.SQLAlchemyError, e:
             PluginUtils.show_error(self, self.tr("SQL Error"), e.message)
@@ -683,7 +680,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
                 return
 
              #session add
-            session = SessionHandler().session_instance()
             user = self.session.query(SetRole).filter(SetRole.user_name_real == officer_user).one()
 
             aimag_ref = self.session.query(AuLevel1).filter(AuLevel1.code == aimag).one()
@@ -704,8 +700,8 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
             set_equipment.soum = soum
             set_equipment.soum_ref = soum_ref
 
-            session.add(set_equipment)
-            session.commit()
+            self.session.add(set_equipment)
+            self.session.commit()
 
             id = set_equipment.id
 
@@ -790,7 +786,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         aimag_item = self.equipment_twidget.item(current_row, 9)
         soum_item = self.equipment_twidget.item(current_row, 10)
 
-        session = SessionHandler().session_instance()
         equipment = self.session.query(SetEquipment).filter(SetEquipment.id == id).one()
 
         self.id_equipment_edit.setText(str(id))
@@ -826,8 +821,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         self.soums_cbox.setCurrentIndex(self.soums_cbox.findData(equipment.soum_ref.code))
 
         try:
-            session = SessionHandler().session_instance()
-
             equipment_doc = self.session.query(SetEquipmentDocument).filter(SetEquipmentDocument.equipment == id).all()
             row = 0
             for item in equipment_doc:
@@ -846,7 +839,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __seller_name_auto_choose(self):
 
         try:
-            session = SessionHandler().session_instance()
             seller_list = self.session.query(SetEquipment.seller_name).order_by(SetEquipment.seller_name.desc()).all()
         except SQLAlchemyError, e:
             PluginUtils.show_error(self, self.tr("Database Query Error"), self.tr("Could not execute: {0}").format(e.message))
@@ -877,7 +869,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         self.__seller_name_auto_choose()
         self.equipment_twidget.setRowCount(0)
         try:
-            session = SessionHandler().session_instance()
             equipment = self.session.query(SetEquipment).all()
             row = 0
             for items in equipment:
@@ -1123,15 +1114,14 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         if message_box.clickedButton() == yes_button:
             try:
-                session = SessionHandler().session_instance()
                 equipment = self.session.query(SetEquipment).filter(SetEquipment.id == id).one()
                 equipment_document = self.session.query(SetEquipmentDocument).filter(SetEquipmentDocument.equipment == id).all()
                 for item in equipment_document:
                     document = self.session.query(SetDocument).filter(SetDocument.id == item.document).one()
-                    session.delete(document)
-                    session.delete(item)
+                    self.session.delete(document)
+                    self.session.delete(item)
                 equipment = self.session.query(SetEquipment).filter(SetEquipment.id == id).one()
-                session.delete(equipment)
+                self.session.delete(equipment)
                 self.equipment_twidget.removeRow(current_row)
 
             except SQLAlchemyError, e:
@@ -1154,7 +1144,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
             officer_user = self.users_list_cbox.itemData(self.users_list_cbox.currentIndex())
             filter_is_set = False
             try:
-                session = SessionHandler().session_instance()
                 equipment = self.session.query(SetEquipment)
                 if not self.equipment_list_cbox.itemData(self.equipment_list_cbox.currentIndex()) == -1:
                     filter_is_set = True
@@ -1250,7 +1239,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
             officer_user = self.users_list_cbox.itemData(self.users_list_cbox.currentIndex())
             filter_is_set = False
             try:
-                session = SessionHandler().session_instance()
                 equipment = self.session.query(SetEquipment)
                 if not self.equipment_list_cbox.itemData(self.equipment_list_cbox.currentIndex()) == -1:
                     filter_is_set = True
@@ -1560,7 +1548,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         self.table_widget.clearContents()
         self.table_widget.setRowCount(0)
-        session = SessionHandler().session_instance()
 
         codelist_name = self.select_codelist_cbox.itemData(self.select_codelist_cbox.currentIndex())
         codelist_class = self.__codelist_class(codelist_name)
@@ -1643,6 +1630,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __save_documents(self):
 
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         for i in range(self.doc_twidget.rowCount()):
 
@@ -1699,6 +1690,11 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         code = self.table_widget.item(row, CODELIST_CODE).data(Qt.UserRole)
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
+
         count = self.session.query(codelist_class).filter(codelist_class.code == code).count()
         if count > 0:
             entry = self.session.query(codelist_class).get(code)
@@ -1716,7 +1712,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __codelist_names(self):
 
         lookup = {}
-        session = SessionHandler().session_instance()
 
         try:
             sql = text("select description, relname from pg_description join pg_class on pg_description.objoid = pg_class.oid join pg_namespace on pg_namespace.oid = pg_class.relnamespace where pg_namespace.nspname = 'codelists';")
@@ -1733,6 +1728,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __write_logging_settings(self, log_level):
 
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         try:
             sql = text("UPDATE settings.set_logging SET log_enabled = :logLevel;")
@@ -1744,6 +1743,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __write_payment_settings(self, payment_settings):
 
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         try:
             sql = text(
@@ -1757,6 +1760,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __write_certificate_settings(self, certificate_settings, certificate_type):
 
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         try:
             certificate_set = self.session.query(SetCertificate).get(certificate_type)
@@ -1771,6 +1778,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         l2_code = DatabaseUtils.working_l2_code()
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         for key_name, value in report_settings.iteritems():
             try:
@@ -1782,7 +1793,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
     def __logging_settings(self):
 
-        session = SessionHandler().session_instance()
         enabled = False
 
         try:
@@ -1798,7 +1808,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
     def __payment_settings(self):
 
-        session = SessionHandler().session_instance()
         lookup = {}
 
         try:
@@ -1816,13 +1825,11 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
     def __certificate_range(self, certificate_type):
 
-        session = SessionHandler().session_instance()
         first_no, last_no, current_no = self.session.query(SetCertificate.range_first_no, SetCertificate.range_last_no, SetCertificate.current_no).filter(SetCertificate.type == certificate_type).one()
         return {Constants.CERTIFICATE_FIRST_NUMBER: first_no, Constants.CERTIFICATE_LAST_NUMBER: last_no, Constants.CERTIFICATE_CURRENT_NUMBER: current_no}
 
     def __admin_settings(self, table_name):
 
-        session = SessionHandler().session_instance()
         lookup = {}
         l2_code = DatabaseUtils.working_l2_code()
         try:
@@ -1954,6 +1961,13 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
             PluginUtils.show_message(self, self.tr("LM2", "Sql Error"), e.message)
             return
 
+    def __set_schema(self):
+
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        self.session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
+
     @pyqtSlot(int)
     def on_zone_location_cbox_currentIndexChanged(self, idx):
 
@@ -2042,7 +2056,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         location = self.zone_location_tax_cbox.currentText()
 
-        session = SessionHandler().session_instance()
         zones = self.session.query(SetTaxAndPriceZone.zone_id, SetTaxAndPriceZone.zone_no). \
             filter(SetTaxAndPriceZone.location == location).order_by(SetTaxAndPriceZone.zone_no)
 
@@ -2113,8 +2126,7 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         self.land_fee_twidget.clearContents()
         self.land_fee_twidget.setRowCount(0)
-        session = SessionHandler().session_instance()
-
+        self.__set_schema()
         zone = self.session.query(SetFeeZone).filter(SetFeeZone.zone_id == zone_fid).one()
         fees = self.session.query(SetBaseFee).filter(SetBaseFee.fee_zone == zone.zone_id).all()
         self.land_fee_twidget.setRowCount(len(fees))
@@ -2139,8 +2151,7 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         self.land_tax_twidget.clearContents()
         self.land_tax_twidget.setRowCount(0)
-        session = SessionHandler().session_instance()
-
+        self.__set_schema()
         zone = self.session.query(SetTaxAndPriceZone).filter(SetTaxAndPriceZone.zone_id == zone_fid).one()
         taxes = self.session.query(SetBaseTaxAndPrice).filter(SetBaseTaxAndPrice.tax_zone == zone.zone_id).all()
         self.land_tax_twidget.setRowCount(len(taxes))
@@ -2159,7 +2170,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __set_up_land_fee_tab(self):
 
         self.update_date.setDate(QDate.currentDate())
-        session = SessionHandler().session_instance()
 
         zone_fid = self.zones_lwidget.item(self.zones_lwidget.currentRow()).data(Qt.UserRole)
 
@@ -2192,8 +2202,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __set_up_land_tax_tab(self):
 
         self.update_tax_date.setDate(QDate.currentDate())
-
-        session = SessionHandler().session_instance()
 
         zone_fid = self.zones_tax_lwidget.item(self.zones_tax_lwidget.currentRow()).data(Qt.UserRole)
 
@@ -2346,6 +2354,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         fee_id = self.land_fee_twidget.item(row, 0).data(Qt.UserRole)
         if fee_id != -1:  # already has a row in the database
             session = SessionHandler().session_instance()
+            soum_code = DatabaseUtils.working_l2_code()
+            schema_string = 's' + soum_code
+            session.execute(
+                "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
             fee = self.session.query(SetBaseFee).filter(SetBaseFee.id == fee_id).one()
             session.delete(fee)
 
@@ -2361,6 +2373,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         tax_id = self.land_tax_twidget.item(row, 0).data(Qt.UserRole)
         if tax_id != -1:  # already has a row in the database
             session = SessionHandler().session_instance()
+            soum_code = DatabaseUtils.working_l2_code()
+            schema_string = 's' + soum_code
+            session.execute(
+                "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
             tax = self.session.query(SetBaseTaxAndPrice).filter(SetBaseTaxAndPrice.id == tax_id).one()
             session.delete(tax)
 
@@ -2405,7 +2421,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __save_fees(self, zone_fid=None):
 
         try:
-            session = SessionHandler().session_instance()
             if zone_fid is None:
                 zone_fid = self.zones_lwidget.item(self.zones_lwidget.currentRow()).data(Qt.UserRole)
             zone = self.session.query(SetFeeZone).filter(SetFeeZone.zone_id == zone_fid).one()
@@ -2439,7 +2454,7 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
     def __save_taxes(self, zone_fid=None):
 
         try:
-            session = SessionHandler().session_instance()
+
             if zone_fid is None:
                 zone_fid = self.zones_tax_lwidget.item(self.zones_tax_lwidget.currentRow()).data(Qt.UserRole)
             zone = self.session.query(SetTaxAndPriceZone).filter(SetTaxAndPriceZone.zone_id == zone_fid).one()
@@ -2492,6 +2507,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         try:
             session = SessionHandler().session_instance()
+            soum_code = DatabaseUtils.working_l2_code()
+            schema_string = 's' + soum_code
+            session.execute(
+                "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
             from_zone = self.session.query(SetFeeZone).filter(SetFeeZone.zone_id == from_zone_fid).one()
             fee_count = len(from_zone.fees)
 
@@ -2548,6 +2567,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         try:
             session = SessionHandler().session_instance()
+            soum_code = DatabaseUtils.working_l2_code()
+            schema_string = 's' + soum_code
+            session.execute(
+                "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
             from_zone = self.session.query(SetTaxAndPriceZone).filter(SetTaxAndPriceZone.zone_id == from_zone_fid).one()
             tax_count = len(from_zone.taxes)
 
@@ -2616,6 +2639,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         self.create_savepoint()
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         try:
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -2747,6 +2774,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         self.create_savepoint()
         session = SessionHandler().session_instance()
+        soum_code = DatabaseUtils.working_l2_code()
+        schema_string = 's' + soum_code
+        session.execute(
+            "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
 
         try:
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -2910,7 +2941,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         self.company_twidget.clearContents()
         self.company_twidget.setRowCount(0)
-        session = SessionHandler().session_instance()
 
         companies = self.session.query(SetSurveyCompany).order_by(SetSurveyCompany.name).all()
         self.company_twidget.setRowCount(len(companies))
@@ -2932,7 +2962,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         if company_id == -1:
             return
 
-        session = SessionHandler().session_instance()
         company = self.session.query(SetSurveyCompany).filter(SetSurveyCompany.id == company_id).one()
         self.surveyor_twidget.setRowCount(len(company.surveyors))
         row = 0
@@ -2972,6 +3001,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         company_id = self.company_twidget.item(row, 0).data(Qt.UserRole)
         if company_id != -1:  # already has a row in the database
             session = SessionHandler().session_instance()
+            soum_code = DatabaseUtils.working_l2_code()
+            schema_string = 's' + soum_code
+            session.execute(
+                "SET search_path to base, codelists, admin_units, settings, pasture, public" + ", " + schema_string)
             company = self.session.query(SetSurveyCompany).filter(SetSurveyCompany.id == company_id).one()
             session.delete(company)
 

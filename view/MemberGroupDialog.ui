@@ -264,6 +264,19 @@
      </property>
     </column>
    </widget>
+   <widget class="QPushButton" name="group_new_button">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>60</y>
+      <width>51</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>new</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
@@ -415,16 +428,6 @@
       <normaloff>:/plugins/lm2/up_button.png</normaloff>:/plugins/lm2/up_button.png</iconset>
     </property>
    </widget>
-   <zorder>person_id_edit</zorder>
-   <zorder>label_5</zorder>
-   <zorder>label_6</zorder>
-   <zorder>firstname_edit</zorder>
-   <zorder>person_find_button</zorder>
-   <zorder>person_twidget</zorder>
-   <zorder>member_twidget</zorder>
-   <zorder>pug_add_person_button</zorder>
-   <zorder>pug_remove_person_button</zorder>
-   <zorder>person_results_twidget</zorder>
   </widget>
   <widget class="QPushButton" name="close_button">
    <property name="geometry">

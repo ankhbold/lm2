@@ -706,9 +706,9 @@ class CreateCaseDialog(QDialog, Ui_CreateCaseDialog, DatabaseHelper):
                 parcel_plan_c = self.session.query(CaPlanParcel.parcel_id) \
                     .filter(CaPlanParcel.geometry.ST_Within(WKTElement(parcel.geometry().exportToWkt(), srid=4326))).count()
 
-                if parcel_plan_c == 0:
-                    PluginUtils.show_message(self, self.tr("Error"), self.tr("This parcel not in cadastre plan!!!"))
-                    return
+                # if parcel_plan_c == 0:
+                #     PluginUtils.show_message(self, self.tr("Error"), self.tr("This parcel not in cadastre plan!!!"))
+                #     return
 
                 if parcel_overlap_c != 0:
                     PluginUtils.show_message(self, self.tr("Error"), self.tr("Ca_Parcel layer parcel overlap!!!"))

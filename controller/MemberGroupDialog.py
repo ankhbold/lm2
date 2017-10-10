@@ -159,6 +159,29 @@ class MemberGroupDialog(QDialog, Ui_MemberGroupDialog, DatabaseHelper):
             except SQLAlchemyError, e:
                 PluginUtils.show_message(self, self.tr("Sql Error"), e.message)
 
+    @pyqtSlot()
+    def on_group_new_button_clicked(self):
+
+        self.__new_id_generate()
+
+    def __new_id_generate(self):
+
+        pug_max_id = self.session.query(CtPersonGroup). \
+            order_by(CtPersonGroup.group_no.desc()).first()
+
+        l2_code = DatabaseUtils.working_l2_code()
+
+        if not pug_max_id:
+            member_group_new_id = 1
+        else:
+            if len(str(pug_max_id.group_no)) < 5:
+                member_group_new_id = pug_max_id.group_no + 1
+            else:
+                member_group_new_id = int(str(pug_max_id.group_no)[4:]) + 1
+        member_group_new_id = int(str(int(l2_code)) + '' + str(member_group_new_id))
+
+        self.group_id_edit.setText(str(member_group_new_id))
+
     def __setup_validators(self):
 
         self.capital_asci_letter_validator = QRegExpValidator(QRegExp("[A-Z]"), None)
@@ -369,7 +392,7 @@ class MemberGroupDialog(QDialog, Ui_MemberGroupDialog, DatabaseHelper):
             if group_id == self.group_id_edit.text() or group_name == self.group_name_edit.text():
                 is_register = True
         group_count = self.session.query(CtPersonGroup). \
-            filter(CtPersonGroup.group_no == self.group_id_edit.text()).count()
+            filter(CtPersonGroup.group_no == int(self.group_id_edit.text())).count()
         if group_count > 0:
             PluginUtils.show_message(self, self.tr("Group Duplicate"), self.tr("This group already registered"))
             return
@@ -378,10 +401,10 @@ class MemberGroupDialog(QDialog, Ui_MemberGroupDialog, DatabaseHelper):
             PluginUtils.show_message(self, self.tr("Group Duplicate"), self.tr("This group already registered"))
             return
 
+        group_id = -1
         row = self.group_twidget.rowCount()
         self.group_twidget.insertRow(row)
 
-        group_id = -1
         item = QTableWidgetItem((self.group_id_edit.text()))
         item.setCheckState(Qt.Checked)
         item.setIcon(QIcon(QPixmap(":/plugins/lm2_pasture/group.png")))
@@ -554,6 +577,9 @@ class MemberGroupDialog(QDialog, Ui_MemberGroupDialog, DatabaseHelper):
                 if new_row:
                     self.session.add(pug_group)
 
+                item = self.group_twidget.item(row, 0)
+                item.setData(Qt.UserRole, int(self.group_twidget.item(row, 0).text()))
+
         except exc.SQLAlchemyError, e:
             PluginUtils.show_error(self, self.tr("SQL Error"), e.message)
             raise
@@ -703,6 +729,8 @@ class MemberGroupDialog(QDialog, Ui_MemberGroupDialog, DatabaseHelper):
     def __save_member(self):
 
         row = self.group_twidget.currentRow()
+        if row == -1:
+            return
         group_no = self.group_twidget.item(row, 0).data(Qt.UserRole)
 
         for row in range(self.member_twidget.rowCount()):
@@ -751,4 +779,5 @@ class MemberGroupDialog(QDialog, Ui_MemberGroupDialog, DatabaseHelper):
         for row in range(self.member_twidget.rowCount()):
             item_dec = self.member_twidget.item(row, 0)
             item_dec.setCheckState(Qt.Unchecked)
-        id_item.setCheckState(Qt.Checked)
+        if id_item:
+            id_item.setCheckState(Qt.Checked)

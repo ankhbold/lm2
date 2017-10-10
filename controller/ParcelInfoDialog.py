@@ -138,10 +138,10 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
     def __create_subject_view(self):
 
         sql = ""
-
+        soum_code = DatabaseUtils.working_l2_code()
         if not sql:
             sql = "Create temp view all_subject_search as" + "\n"
-            select = " SELECT * FROM ub_data.all_subject "
+            select = " SELECT * FROM s"+soum_code+".all_subject "
 
             sql = sql + select
 

@@ -1903,6 +1903,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
         elif person.type == 30 or person.type == 40 or person.type == 60:
             company_name = company_name + u'-н ' + contact_position + u' ' + person_surname + u' овогтой ' + person_firstname
 
+        duration_year = self.contract_duration_edit.text()
         context = {
             'aimag_name': aimag_name,
             'contract_no': contract_no,
@@ -1941,7 +1942,8 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             'person_email': person_email,
             'person_id': person.person_id,
             'office_phone': office_phone,
-            'parcel_id': parcel_id
+            'parcel_id': parcel_id,
+            'duration_year': duration_year
         }
 
         tpl.render(context)
@@ -2059,6 +2061,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             self.__add_person_signature(map_composition)
             # self.__add_app_status_date(map_composition)
             self.__add_person_name(map_composition)
+            # self.__add_duration(map_composition)
             self.__add_officer(map_composition)
             self.__officer_info(map_composition)
             map_composition.exportAsPDF(path + "contract_poss.pdf")
@@ -2080,6 +2083,14 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             PluginUtils.show_error(self, self.tr("SQL Error"), e.message)
 
         return lookup
+
+    def __add_duration(self,map_composition):
+
+        duration_year = self.contract_duration_edit.text()
+
+        item = map_composition.getComposerItemById("duration_year")
+        item.setText(duration_year)
+        item.adjustSizeToText()
 
     def __add_officer_cert(self,map_composition):
 

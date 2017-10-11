@@ -796,7 +796,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             mygroup.addLayer(vlayer_eco)
 
         for layer in layers:
-            if layer.name() == "PUGMonitoringPoint"+'_' + restrictions:
+            if layer.name() == "PUGMonitoringPoint":
                 is_monitoring_layer = True
         if not is_monitoring_layer:
             mygroup.addLayer(vlayer_monitoring_point)
@@ -815,11 +815,11 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         vlayer_parcel.loadNamedStyle(str(os.path.dirname(os.path.realpath(__file__))[:-10]) + "template\style/pug_parcel.qml")
         vlayer_building.setLayerName(QApplication.translate("Plugin", "PUGBuilding") + '_' + restrictions)
 
-        monitoring_layer.setLayerName(QApplication.translate("Plugin", "PastureMonitoringPoint") + '_' + restrictions)
-        # vlayer.loadNamedStyle(
-        #     str(os.path.dirname(os.path.realpath(__file__))[:-10]) + "template\style/pug_boundary.qml")
+        monitoring_layer.setLayerName(QApplication.translate("Plugin", "PastureMonitoringPoint"))
+        monitoring_layer.loadNamedStyle(
+            str(os.path.dirname(os.path.realpath(__file__))[:-10]) + "template\style/ca_monitoring_point.qml")
 
-        natural_zone_layaer.setLayerName(QApplication.translate("Plugin", "NaturalZone") + '_' + restrictions)
+        natural_zone_layaer.setLayerName(QApplication.translate("Plugin", "NaturalZone"))
         natural_zone_layaer.loadNamedStyle(
             str(os.path.dirname(os.path.realpath(__file__))[:-10]) + "template\style/ca_nat_zone_marged.qml")
 

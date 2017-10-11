@@ -383,7 +383,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Pasture type</string>
+          <string>Application type</string>
          </property>
         </widget>
        </widget>
@@ -415,9 +415,9 @@
         <widget class="QPushButton" name="pasture_contract_view_button">
          <property name="geometry">
           <rect>
-           <x>266</x>
+           <x>256</x>
            <y>183</y>
-           <width>101</width>
+           <width>111</width>
            <height>23</height>
           </rect>
          </property>
@@ -430,7 +430,7 @@
           <rect>
            <x>130</x>
            <y>183</y>
-           <width>111</width>
+           <width>121</width>
            <height>23</height>
           </rect>
          </property>
@@ -443,7 +443,7 @@
           <rect>
            <x>5</x>
            <y>183</y>
-           <width>101</width>
+           <width>121</width>
            <height>23</height>
           </rect>
          </property>
@@ -529,7 +529,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
          <rect>
           <x>5</x>
           <y>5</y>
-          <width>101</width>
+          <width>201</width>
           <height>23</height>
          </rect>
         </property>
@@ -1347,9 +1347,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
        <widget class="QPushButton" name="settings_button">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>30</y>
-          <width>131</width>
+          <x>20</x>
+          <y>10</y>
+          <width>221</width>
           <height>23</height>
          </rect>
         </property>

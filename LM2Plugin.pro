@@ -34,6 +34,7 @@ SOURCES        += controller/SentToGovernorPastureDialog.py
 
 SOURCES        += controller/ParcelInfoDialog.py
 SOURCES        += controller/ParcelInfoExtractMapTool.py
+SOURCES        += controller/PastureMonitoringValueDialog.py
 
 SOURCES      += controller/qt_classes/ApplicantDocumentDelegate.py
 SOURCES      += controller/qt_classes/ApplicationComboBoxDelegate.py
@@ -92,5 +93,6 @@ FORMS        += view/PastureWidget.ui
 FORMS        += view/SentToGovernorPastureDialog.ui
 
 FORMS        += view/ParcelInfoDialog.ui
+FORMS        += view/PastureMonitoringValueDialog.ui
 
 TRANSLATIONS += LM2Plugin_mn.ts

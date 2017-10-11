@@ -629,13 +629,13 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             app_type = "" if not application.app_type_ref else application.app_type_ref.description
             item = QTableWidgetItem(str(application.app_no) + " ( " + unicode(app_type) + " )")
             if application.status == 9:
-                item.setBackground(Qt.blue)
+                item.setBackground(QtGui.QColor(133, 193, 233 ))
             elif application.status == 7:
-                item.setBackground(Qt.green)
+                item.setBackground(QtGui.QColor(88, 214, 141))
             elif application.status == 6:
-                item.setBackground(Qt.gray)
+                item.setBackground(QtGui.QColor(213, 219, 219))
             else:
-                item.setBackground(Qt.yellow)
+                item.setBackground(QtGui.QColor(249, 231, 159))
             item.setIcon(QIcon(QPixmap(":/plugins/lm2/application.png")))
             item.setData(Qt.UserRole, application.app_no)
             self.pasture_results_twidget.insertRow(count)

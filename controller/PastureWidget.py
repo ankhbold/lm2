@@ -34,6 +34,7 @@ from ..model.PClReserveDaatsLevel import *
 from ..model.PsAvgReserveDaats import *
 from ..utils.LayerUtils import LayerUtils
 from ..utils.SessionHandler import SessionHandler
+from ..model.Enumerations import ApplicationType
 from datetime import timedelta
 from xlsxwriter.utility import xl_rowcol_to_cell, xl_col_to_name
 import xlsxwriter
@@ -430,7 +431,8 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             PluginUtils.populate_au_level2_cbox(self.working_l2_cbox, l1_code, False)
 
             cl_landusetype = self.session.query(ClLanduseType).all()
-            cl_pasturetype = self.session.query(ClPastureType).all()
+            cl_pasturetype = self.session.query(ClApplicationType).\
+                filter(or_(ClApplicationType.code == ApplicationType.pasture_use, ClApplicationType.code == ApplicationType.right_land)).all()
             ct_member_group = self.session.query(CtPersonGroup).all()
 
         except SQLAlchemyError, e:
@@ -440,7 +442,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         self.pasture_group_cbox.addItem("*", -1)
         self.pasture_landuse_cbox.addItem("*", -1)
-        self.pasture_type_cbox.addItem("*", -1)
+        self.app_type_cbox.addItem("*", -1)
 
         if ct_member_group is not None:
             for member in ct_member_group:
@@ -452,7 +454,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         if cl_pasturetype is not None:
             for pasture in cl_pasturetype:
-                self.pasture_type_cbox.addItem(str(pasture.code)+':'+pasture.description, pasture.code)
+                self.app_type_cbox.addItem(str(pasture.code)+':'+pasture.description, pasture.code)
 
     @pyqtSlot()
     def on_current_dialog_closed(self):
@@ -532,7 +534,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         self.pasture_date_cbox.setChecked(False)
         self.pasture_group_cbox.setCurrentIndex(self.pasture_group_cbox.findData(-1))
         self.pasture_landuse_cbox.setCurrentIndex(self.pasture_landuse_cbox.findData(-1))
-        self.pasture_type_cbox.setCurrentIndex(self.pasture_type_cbox.findData(-1))
+        self.app_type_cbox.setCurrentIndex(self.app_type_cbox.findData(-1))
 
     @pyqtSlot(int)
     def on_pasture_date_cbox_stateChanged(self, state):
@@ -554,7 +556,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         filter_is_set = False
         sub = self.session.query(ApplicationPastureSearch, func.row_number().over(partition_by = ApplicationPastureSearch.app_no, order_by = (desc(ApplicationPastureSearch.status_date), desc(ApplicationPastureSearch.status))).label("row_number")).subquery()
         applications = applications.select_entity_from(sub).filter(sub.c.row_number == 1)
-        applications = applications.filter(or_(ApplicationPastureSearch.app_type == ApplicationType.legitimate_rights,
+        applications = applications.filter(or_(ApplicationPastureSearch.app_type == ApplicationType.right_land,
                    ApplicationPastureSearch.app_type == ApplicationType.pasture_use))
         if self.pasture_group_cbox.currentIndex() != -1:
             if not self.pasture_group_cbox.itemData(self.pasture_group_cbox.currentIndex()) == -1:
@@ -563,11 +565,11 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
                 applications = applications.filter(ApplicationPastureSearch.group_no == group_no)
 
-        if self.pasture_type_cbox.currentIndex() != -1:
-            if not self.pasture_type_cbox.itemData(self.pasture_type_cbox.currentIndex()) == -1:
+        if self.app_type_cbox.currentIndex() != -1:
+            if not self.app_type_cbox.itemData(self.app_type_cbox.currentIndex()) == -1:
                 filter_is_set = True
-                pasture_type = self.pasture_type_cbox.itemData(self.pasture_type_cbox.currentIndex())
-                applications = applications.filter(ApplicationPastureSearch.pasture_type == pasture_type)
+                app_type = self.app_type_cbox.itemData(self.app_type_cbox.currentIndex())
+                applications = applications.filter(ApplicationPastureSearch.app_type == app_type)
 
         if self.pasture_app_no_edit.text():
             filter_is_set = True
@@ -728,7 +730,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                 self.pasture_contract_no_edit.setStyleSheet("color: rgb(189, 21, 38)")
 
             self.pasture_group_cbox.setCurrentIndex(self.pasture_group_cbox.findData(app_result.group_no))
-            self.pasture_type_cbox.setCurrentIndex(self.pasture_type_cbox.findData(app_result.pasture_type))
+            self.app_type_cbox.setCurrentIndex(self.app_type_cbox.findData(app_result.pasture_type))
 
         except SQLAlchemyError, e:
             PluginUtils.show_error(self, self.tr("File Error"),

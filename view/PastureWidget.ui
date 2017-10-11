@@ -363,7 +363,7 @@
           </rect>
          </property>
         </widget>
-        <widget class="QComboBox" name="pasture_type_cbox">
+        <widget class="QComboBox" name="app_type_cbox">
          <property name="geometry">
           <rect>
            <x>10</x>

@@ -1502,7 +1502,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         for pasture_plant in pasture_plants:
 
             pasture_value = self.session.query(ClPastureValues).filter(ClPastureValues.code == pasture_plant.plants).one()
-
+            print pasture_value.description
             item_name = QTableWidgetItem(pasture_value.description)
             item_name.setData(Qt.UserRole, pasture_value.code)
             count = self.pasture_values_twidget.rowCount()

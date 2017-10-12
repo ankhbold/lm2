@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\work\LAND_MANAGER\lm2\view\ContractDialog.ui'
+# Form implementation generated from reading ui file '.\ContractDialog.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -220,10 +220,6 @@ class Ui_ContractDialog(object):
         self.calculated_num_edit.setEnabled(True)
         self.calculated_num_edit.setGeometry(QtCore.QRect(530, 40, 181, 20))
         self.calculated_num_edit.setObjectName(_fromUtf8("calculated_num_edit"))
-        self.contract_end_edit = QtGui.QLineEdit(self.groupBox_2)
-        self.contract_end_edit.setEnabled(False)
-        self.contract_end_edit.setGeometry(QtCore.QRect(530, 100, 181, 20))
-        self.contract_end_edit.setObjectName(_fromUtf8("contract_end_edit"))
         self.status_groupbox = QtGui.QGroupBox(self.groupBox_2)
         self.status_groupbox.setGeometry(QtCore.QRect(30, 130, 191, 171))
         self.status_groupbox.setObjectName(_fromUtf8("status_groupbox"))
@@ -310,6 +306,9 @@ class Ui_ContractDialog(object):
         self.error_label.setGeometry(QtCore.QRect(30, 325, 711, 16))
         self.error_label.setText(_fromUtf8(""))
         self.error_label.setObjectName(_fromUtf8("error_label"))
+        self.contract_end_date = QtGui.QDateEdit(self.groupBox_2)
+        self.contract_end_date.setGeometry(QtCore.QRect(530, 100, 110, 22))
+        self.contract_end_date.setObjectName(_fromUtf8("contract_end_date"))
         self.tab_widget.addTab(self.tab_3, _fromUtf8(""))
         self.contract_conditions_tab = QtGui.QWidget()
         self.contract_conditions_tab.setObjectName(_fromUtf8("contract_conditions_tab"))
@@ -573,7 +572,7 @@ class Ui_ContractDialog(object):
         self.status_label.setObjectName(_fromUtf8("status_label"))
 
         self.retranslateUi(ContractDialog)
-        self.tab_widget.setCurrentIndex(0)
+        self.tab_widget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(ContractDialog)
         ContractDialog.setTabOrder(self.tab_widget, self.enter_application_num_edit)
         ContractDialog.setTabOrder(self.enter_application_num_edit, self.search_button)
@@ -601,8 +600,7 @@ class Ui_ContractDialog(object):
         ContractDialog.setTabOrder(self.contract_date, self.calculated_num_edit)
         ContractDialog.setTabOrder(self.calculated_num_edit, self.contract_begin_edit)
         ContractDialog.setTabOrder(self.contract_begin_edit, self.contract_duration_edit)
-        ContractDialog.setTabOrder(self.contract_duration_edit, self.contract_end_edit)
-        ContractDialog.setTabOrder(self.contract_end_edit, self.draft_rbutton)
+        ContractDialog.setTabOrder(self.contract_duration_edit, self.draft_rbutton)
         ContractDialog.setTabOrder(self.draft_rbutton, self.active_rbutton)
         ContractDialog.setTabOrder(self.active_rbutton, self.expired_rbutton)
         ContractDialog.setTabOrder(self.expired_rbutton, self.cancelled_rbutton)

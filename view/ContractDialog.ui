@@ -78,7 +78,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>6</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -727,19 +727,6 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLineEdit" name="contract_end_edit">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>530</x>
-        <y>100</y>
-        <width>181</width>
-        <height>20</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QGroupBox" name="status_groupbox">
       <property name="geometry">
        <rect>
@@ -1037,6 +1024,16 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+     </widget>
+     <widget class="QDateEdit" name="contract_end_date">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>100</y>
+        <width>110</width>
+        <height>22</height>
+       </rect>
       </property>
      </widget>
     </widget>
@@ -1893,7 +1890,6 @@
   <tabstop>calculated_num_edit</tabstop>
   <tabstop>contract_begin_edit</tabstop>
   <tabstop>contract_duration_edit</tabstop>
-  <tabstop>contract_end_edit</tabstop>
   <tabstop>draft_rbutton</tabstop>
   <tabstop>active_rbutton</tabstop>
   <tabstop>expired_rbutton</tabstop>

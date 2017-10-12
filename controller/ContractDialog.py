@@ -33,7 +33,7 @@ from ..view.Ui_ContractDialog import *
 from ..model.CtContractDocument import *
 from ..model.ClPositionType import *
 from ..model.ClContractCondition import *
-from ..model.Enumerations import UserRight
+from ..model.Enumerations import UserRight, UserRight_code
 from ..model.CtDecisionApplication import *
 from ..model.CtDecision import *
 from ..model.LM2Exception import LM2Exception
@@ -43,6 +43,7 @@ from ..model.SetContractDocumentRole import SetContractDocumentRole
 from ..model.SetApplicationTypeDocumentRole import SetApplicationTypeDocumentRole
 from ..model.CtApplicationStatus import *
 from ..model.SetCertificate import *
+from ..model.SetUserGroupRole import *
 from ..utils.FileUtils import FileUtils
 from ..utils.PluginUtils import PluginUtils
 from ..utils.SessionHandler import SessionHandler
@@ -101,6 +102,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
         self.drop_label = DropLabel("application", self.application_groupbox)
         self.drop_label.itemDropped.connect(self.on_drop_label_itemDropped)
         self.close_button.clicked.connect(self.reject)
+        self.contract_end_date.dateChanged.connect(self.__end_date_change)
 
         self.__setup_combo_boxes()
         self.__set_up_land_fee_twidget()
@@ -123,7 +125,35 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
                 self.reject()
 
         self.__setup_permissions()
+        self.__user_right_permissions()
         self.__setup_validators()
+
+    def __user_right_permissions(self):
+
+        user_name = QSettings().value(SettingsConstants.USER)
+        user = self.session.query(SetRole).\
+            filter(SetRole.user_name == user_name).\
+            filter(SetRole.is_active == True).one()
+        user_name_real = user.user_name_real
+
+        user_rights = self.session.query(SetUserGroupRole).filter(SetUserGroupRole.user_name_real == user_name_real).all()
+        for user_right in user_rights:
+            if user_right.group_role == UserRight_code.contracting_update:
+                if user_right.r_update:
+                    self.contract_end_date.setEnabled(True)
+                else:
+                    self.contract_end_date.setEnabled(False)
+
+    def __end_date_change(self, new_date):
+
+        end = PluginUtils.convert_qt_date_to_python(new_date).date()
+        begin = self.contract.contract_begin
+        age_in_years = end.year - begin.year - ((end.month, end.day) < (begin.month, begin.day))
+        months = (end.month - begin.month - (end.day < begin.day)) % 12
+        age = end - begin
+        age_in_days = age.days
+
+        self.contract_duration_edit.setText(str(age_in_years))
 
     def __setup_validators(self):
 
@@ -245,6 +275,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             self.status_groupbox.setEnabled(True)
             self.contract_cancellation_groupbox.setEnabled(True)
             self.documents_groupbox.setEnabled(True)
+            self.contract_end_date.setEnabled(True)
         else:
             self.apply_button.setEnabled(False)
             self.unassign_button.setEnabled(False)
@@ -253,6 +284,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             self.status_groupbox.setEnabled(False)
             self.contract_cancellation_groupbox.setEnabled(False)
             self.documents_groupbox.setEnabled(False)
+            self.contract_end_date.setEnabled(False)
 
     def __setup_mapping(self):
 
@@ -272,7 +304,8 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             self.contract_begin_edit.setText(contract_begin.toString(Constants.DATABASE_DATE_FORMAT))
 
         if contract_end is not None:
-            self.contract_end_edit.setText(contract_end.toString(Constants.DATABASE_DATE_FORMAT))
+            # self.contract_end_edit.setText(contract_end.toString(Constants.DATABASE_DATE_FORMAT))
+            self.contract_end_date.setDate(contract_end)
             duration = contract_end.year() - contract_begin.year()
             self.contract_duration_edit.setText(str(duration))
         else:
@@ -301,7 +334,8 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
                         end_year = dec_year + int(years_approved)
                         end_date = QDate(end_year, qt_date.month(), qt_date.day())
 
-                        self.contract_end_edit.setText(end_date.toString(Constants.DATABASE_DATE_FORMAT))
+                        # self.contract_end_edit.setText(end_date.toString(Constants.DATABASE_DATE_FORMAT))
+                        self.contract_end_date.setDate(end_date)
                         self.contract_duration_edit.setText(str(years_approved))
 
         self.__setup_status()
@@ -560,10 +594,40 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
 
         return True
 
+    def __calculate_age(self):
+
+        begin = self.contract.contract_begin
+        end = PluginUtils.convert_qt_date_to_python(self.contract_end_date.date()).date()
+        age_in_years = end.year - begin.year - ((end.month, end.day) < (begin.month, begin.day))
+        months = (end.month - begin.month - (end.day < begin.day)) % 12
+        age = end - begin
+        age_in_days = age.days
+
+        if not age_in_years > 0:
+            PluginUtils.show_error(self, self.tr("End Date Error"),
+                                   self.tr("Its not allowed to contract date."))
+            return False
+        return True
+        # if age_in_years >= 80:
+        #     return 80, 'years or older'
+        # if age_in_years >= 12:
+        #     return age_in_years, 'years'
+        # elif age_in_years >= 2:
+        #     half = 'and a half ' if months > 6 else ''
+        #     return age_in_years, '%syears' % half
+        # elif months >= 6:
+        #     return months, 'months'
+        # elif age_in_days >= 14:
+        #     return age_in_days / 7, 'weeks'
+        # else:
+        #     return age_in_days, 'days'
+
     def __validate_settings(self):
 
         if len(self.landfee_message_label1.text()) > 0:
             PluginUtils.show_error(self, self.tr("Land Fees"), self.landfee_message_label1.text())
+            return False
+        if not self.__calculate_age():
             return False
 
         return True
@@ -619,10 +683,11 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
                     dec_year = qt_date.year()
                     end_year = dec_year + int(years_approved)
                     end_date = QDate(end_year, qt_date.month(), qt_date.day())
-                    self.contract_end_edit.setText(end_date.toString(Constants.DATABASE_DATE_FORMAT))
+                    # self.contract_end_edit.setText(end_date.toString(Constants.DATABASE_DATE_FORMAT))
+                    self.contract_end_date.setDate(end_date)
                     self.contract_duration_edit.setText(str(years_approved))
             else:
-                self.contract_end_edit.setText("")
+                # self.contract_end_edit.setText("")
                 self.contract_duration_edit.setText("")
 
     def __contract_status(self):
@@ -1088,9 +1153,11 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
         self.contract.contract_begin = self.contract_begin_edit.text()
         self.contract.contract_date = self.contract_date.date().toString(Constants.DATABASE_DATE_FORMAT)
 
-        if self.contract_end_edit.text():
-            self.contract.contract_end = self.contract_end_edit.text()
-
+        # if self.contract_end_edit.text():
+        #     self.contract.contract_end = self.contract_end_edit.text()
+        if self.contract_end_date.date():
+            qt_end_date = PluginUtils.convert_qt_date_to_python(self.contract_end_date.date())
+            self.contract.contract_end = qt_end_date
         if not self.attribute_update:
             # initial_certificate_no = int(self.calculated_num_edit.text())
             # check_certificate_no = self.__calculate_certificate_no()
@@ -1605,7 +1672,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
         self.street_name_edit.setText("")
         self.contract_duration_edit.setText("")
         self.contract_begin_edit.setText("")
-        self.contract_end_edit.setText("")
+        # self.contract_end_edit.setText("")
         self.khashaa_edit.setText("")
 
         try:
@@ -3172,7 +3239,8 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             self.contract_begin_edit.setText(contract_begin.toString(Constants.DATABASE_DATE_FORMAT))
 
         if contract_end is not None:
-            self.contract_end_edit.setText(contract_end.toString(Constants.DATABASE_DATE_FORMAT))
+            # self.contract_end_edit.setText(contract_end.toString(Constants.DATABASE_DATE_FORMAT))
+            self.contract_end_date.setDate(contract_end)
             duration = contract_end.year() - contract_begin.year()
         duration = '/'+str(duration)+'/'
         item.setText(duration)

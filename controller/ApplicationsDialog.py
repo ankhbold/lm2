@@ -3276,14 +3276,15 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
 
         selected_persons = []
         self.create_savepoint()
+        application_type_code = self.application_type_cbox.itemData(self.application_type_cbox.currentIndex())
 
         for item in self.navigator.person_results_twidget.selectedItems():
             person_id = item.data(Qt.UserRole)
-
-            if self.__duplicate_new_applicant(person_id):
-                PluginUtils.show_error(self, self.tr("Invalid Applicant"),
-                                       self.tr("This new right holder duplicate applicant."))
-                return
+            if application_type_code == ApplicationType.transfer_possession_right:
+                if self.__duplicate_new_applicant(person_id):
+                    PluginUtils.show_error(self, self.tr("Invalid Applicant"),
+                                           self.tr("This new right holder duplicate applicant."))
+                    return
             try:
                 person = self.session.query(BsPerson).filter_by(person_id=person_id).one()
                 role_ref = self.session.query(ClPersonRole).filter_by(

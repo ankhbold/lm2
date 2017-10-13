@@ -128,6 +128,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         self.calc_date_edit.setDate(QDate.currentDate())
 
         self.zone_id = None
+        self.is_cover_value_load = True
 
     def __setup_twidget(self):
 
@@ -147,6 +148,8 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         self.urgats_twidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.urgats_twidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.urgats_twidget.horizontalHeader().setResizeMode(1, QHeaderView.Stretch)
+
+        # self.pasture_values_twidget.cellChanged.connect(self.on_pasture_values_twidget_cellChanged)
 
     def __setup_photos_twidget(self, point_detail_id):
 
@@ -179,6 +182,51 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
 
         self.area_ga_edit.setValidator(self.numbers_validator)
         self.duration_days_edit.setValidator(self.int_validator_3)
+
+    # @pyqtSlot(int, int)
+    # def on_pasture_values_twidget_cellChanged(self, row, column):
+    #
+    #     if self.is_cover_value_load:
+    #         return
+    #     print 'change'
+    #
+    #     row_count = range(self.pasture_values_twidget.rowCount())
+    #     cover_value = 0
+    #     for row in row_count:
+    #         is_cover = False
+    #         pasture_item = self.pasture_values_twidget.item(row, 0)
+    #         if pasture_item.checkState() == Qt.Checked:
+    #             is_cover = True
+    #         year_item = self.pasture_values_twidget.item(row, column).data(Qt.UserRole + 1)
+    #         value_item = self.pasture_values_twidget.item(row, column)
+    #         value = (value_item.text())
+    #         if is_cover:
+    #             cover_value = cover_value + value
+    #
+    #     item = QTableWidgetItem(str(cover_value))
+    #     item.setData(Qt.UserRole, cover_value)
+    #     item.setData(Qt.UserRole+1, year_item)
+    #     self.pasture_values_twidget.setItem(0, column, item)
+
+
+        # if column == APPLICANT_MAIN:
+        #     changed_item = self.owners_remaining_twidget.item(row, column)
+        #     if changed_item.checkState() == Qt.Checked:
+        #
+        #         for cu_row in range(self.owners_remaining_twidget.rowCount()):
+        #             item = self.owners_remaining_twidget.item(cu_row, column)
+        #             if item.checkState() == Qt.Checked and row != cu_row:
+        #                 item.setCheckState(Qt.Unchecked)
+        #
+        # if column == APPLICANT_SHARE:
+        #
+        #     item = self.applicant_twidget.item(row, APPLICANT_MAIN)
+        #     item_share = self.applicant_twidget.item(row, APPLICANT_SHARE)
+        #
+        #     person_id = item.data(Qt.UserRole)
+        #     for applicant in self.application.stakeholders:
+        #         if person_id == applicant.person_ref.person_id:
+        #             applicant.share = Decimal(item_share.text())
 
     def __setup_combo_boxes(self):
 
@@ -1490,7 +1538,9 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
 
         self.pasture_values_twidget.setRowCount(0)
 
-        pasture_plants = self.session.query(PsNaturalZonePlants).filter(PsNaturalZonePlants.natural_zone == self.zone_id).all()
+        pasture_plants = self.session.query(PsNaturalZonePlants).\
+            filter(PsNaturalZonePlants.natural_zone == self.zone_id).\
+            order_by(PsNaturalZonePlants.plants).all()
         self.pasture_values_twidget.setColumnCount(self.end_year_sbox.value() - self.begin_year_sbox.value() + 1)
         header_label = 'Value Name;'
         parcel_id = self.parcel_id_edit.text()
@@ -1726,8 +1776,8 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
                     live_stock_item = self.live_stock_twidget.item(row, 0)
                     live_stock_type = live_stock_item.data(Qt.UserRole)
 
-                    value = self.live_stock_twidget.item(row, column + 1).data(Qt.UserRole)
-
+                    value_item = self.live_stock_twidget.item(row, column + 1).text()
+                    value = int(value_item)
                     live_stock_convert = self.session.query(PsLiveStockConvert). \
                         filter(PsLiveStockConvert.live_stock_type == live_stock_type).one()
                     sheep_convert_value = live_stock_convert.convert_value
@@ -1763,7 +1813,8 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
                     if pasture_item.checkState() == Qt.Checked:
                         is_cover = True
                     year_item = self.pasture_values_twidget.item(row, column + 1).data(Qt.UserRole + 1)
-                    value = self.pasture_values_twidget.item(row, column + 1).data(Qt.UserRole)
+                    value_item = self.pasture_values_twidget.item(row, column + 1)
+                    value = round(float(value_item.text()), 2)
                     if is_cover:
                         cover_value = cover_value + value
 
@@ -1785,6 +1836,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
     @pyqtSlot()
     def on_plant_value_load_button_clicked(self):
 
+        self.is_cover_value_load = True
         selected_items = self.point_detail_twidget.selectedItems()
         if len(selected_items) == 0:
             PluginUtils.show_message(self, self.tr("Selection"), self.tr("Please choose point detail!!!"))
@@ -1798,6 +1850,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         self.__load_live_stock_values()
         # self.__load_sheep_unit_values()
         self.__load_urgats_values(point_detail_id)
+        self.is_cover_value_load = False
 
     def __save_pasture_values(self):
 
@@ -3415,10 +3468,12 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         sheep_unit_food = None
         if not self.zone_id:
             return
-
+        duration = int(self.duration_days_edit.text())
         nz_sheep_food = self.session.query(PsNZSheepFood).filter(PsNZSheepFood.natural_zone == self.zone_id).one()
         sheep_unit_food = nz_sheep_food.current_value
-        return sheep_unit_food
+
+        duration_sheep_unit_food = round((float(sheep_unit_food)*float(duration)/365), 2)
+        return duration_sheep_unit_food
 
     def __load_live_stock_convert(self):
 

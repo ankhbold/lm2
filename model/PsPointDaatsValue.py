@@ -24,3 +24,7 @@ class PsPointDaatsValue(Base):
     d3   = Column(Numeric)
     d3_rc = Column(Numeric)
     unelgee = Column(Numeric)
+
+    # foreign keys:
+    rc_id = Column(Integer, ForeignKey('ps_recovery_class.id'))
+    rc_id_ref = relationship("PsRecoveryClass")

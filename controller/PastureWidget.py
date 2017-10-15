@@ -35,6 +35,8 @@ from ..model.PsAvgReserveDaats import *
 from ..utils.LayerUtils import LayerUtils
 from ..utils.SessionHandler import SessionHandler
 from ..model.Enumerations import ApplicationType
+from ..model.PsRecoveryClass import *
+from ..model.PsParcelDuration import *
 from datetime import timedelta
 from xlsxwriter.utility import xl_rowcol_to_cell, xl_col_to_name
 import xlsxwriter
@@ -80,6 +82,14 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         self.working_l1_cbox.currentIndexChanged.connect(self.__working_l1_changed)
         self.working_l2_cbox.currentIndexChanged.connect(self.__working_l2_changed)
 
+    def __setup_validators(self):
+
+        self.numbers_validator = QRegExpValidator(QRegExp("[0-9]+\\.[0-9]{3}"), None)
+        self.int_validator_2 = QRegExpValidator(QRegExp("[0-9]{3}"), None)
+        self.int_validator_3 = QRegExpValidator(QRegExp("[0-9]"), None)
+
+        self.pasture_duration_edit.setValidator(self.int_validator_2)
+        self.avg_sheep_unit_edit.setValidator(self.int_validator_3)
     def __setup_twidgets(self):
 
         self.zoom_to_parcel_action = QAction(QIcon(":/plugins/lm2/parcel.png"), self.tr("Zoom to parcel"), self)
@@ -257,7 +267,35 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         self.__create_pasture_app_view()
         self.__create_pug_view()
+        self.__create_parcel_duration_view()
         # self.__create_pasture_monitoring_point_view()
+
+    def __create_parcel_duration_view(self):
+
+        au_level2_string = self.userSettings.restriction_au_level2
+        au_level2_list = au_level2_string.split(",")
+        sql = ""
+
+        for au_level2 in au_level2_list:
+
+            au_level2 = au_level2.strip()
+            if not sql:
+                sql = "Create temp view ps_parcel_duration as" + "\n"
+            else:
+                sql = sql + "UNION" + "\n"
+
+            select = "SELECT * " \
+                     "FROM s{0}.ct_application_parcel_pasture pasture_parcel ".format(au_level2) + "\n"
+
+            sql = sql + select
+        sql = "{0} order by parcel;".format(sql)
+
+        # try:
+        self.session.execute(sql)
+        self.commit()
+        # except SQLAlchemyError, e:
+        #     PluginUtils.show_message(self, self.tr("LM2", "Sql Error"), e.message)
+        #     return
 
     def __create_pug_view(self):
 
@@ -998,13 +1036,20 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         self.avg_sheep_unit_edit.setText(str(0))
         self.avg_unelgee_edit.setText(str(0))
 
+        pasture_area = 0
+        pasture_duration = 0
+
         daats_points = self.session.query(PsPointDaatsValue)
         level = self.daats_level_cbox.itemData(self.daats_level_cbox.currentIndex())
         daats_year = self.daats_year_sbox.value()
         daats_points = daats_points.filter(PsPointDaatsValue.monitoring_year == daats_year)
         if level == DAATS_LEVEL_2:
-            au1_code = self.aimag_cbox.itemData(self.aimag_cbox.currentIndex(), Qt.UserRole)
+
             if self.aimag_cbox.currentIndex() != -1:
+                pasture_duration = 365
+                au1_code = self.aimag_cbox.itemData(self.aimag_cbox.currentIndex(), Qt.UserRole)
+                aimag = self.session.query(AuLevel1).filter(AuLevel1.code == au1_code).one()
+                pasture_area = round(float(aimag.area_m2 / 10000), 2)
                 daats_points = daats_points\
                     .join(PsPointDetail, PsPointDaatsValue.point_detail_id == PsPointDetail.point_detail_id)\
                     .join(PsPointDetailPoints, PsPointDaatsValue.point_detail_id == PsPointDetailPoints.point_detail_id) \
@@ -1013,8 +1058,12 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                     .filter(AuLevel1.code == au1_code).all()
 
         if level == DAATS_LEVEL_3:
-            au2_code = self.soum_cbox.itemData(self.soum_cbox.currentIndex(), Qt.UserRole)
+
             if self.soum_cbox.currentIndex() != -1:
+                pasture_duration = 365
+                au2_code = self.soum_cbox.itemData(self.soum_cbox.currentIndex(), Qt.UserRole)
+                soum = self.session.query(AuLevel2).filter(AuLevel2.code == au2_code).one()
+                pasture_area = round(float(soum.area_m2 / 10000), 2)
                 daats_points = daats_points\
                     .join(PsPointDetail, PsPointDaatsValue.point_detail_id == PsPointDetail.point_detail_id)\
                     .join(PsPointDetailPoints, PsPointDaatsValue.point_detail_id == PsPointDetailPoints.point_detail_id) \
@@ -1023,8 +1072,12 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                     .filter(AuLevel2.code == au2_code).all()
 
         if level == DAATS_LEVEL_4:
-            au3_code = self.bag_cbox.itemData(self.bag_cbox.currentIndex(), Qt.UserRole)
+
             if self.bag_cbox.currentIndex() != -1:
+                pasture_duration = 365
+                au3_code = self.bag_cbox.itemData(self.bag_cbox.currentIndex(), Qt.UserRole)
+                bag = self.session.query(AuLevel3).filter(AuLevel3.code == au3_code).one()
+                pasture_area = round(float(bag.area_m2 / 10000), 2)
                 daats_points = daats_points\
                     .join(PsPointDetail, PsPointDaatsValue.point_detail_id == PsPointDetail.point_detail_id)\
                     .join(PsPointDetailPoints, PsPointDaatsValue.point_detail_id == PsPointDetailPoints.point_detail_id) \
@@ -1033,8 +1086,14 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                     .filter(AuLevel3.code == au3_code).all()
 
         if level == DAATS_LEVEL_5:
-            pug_code = self.pug_cbox.itemData(self.pug_cbox.currentIndex(), Qt.UserRole)
-            if self.bag_cbox.currentIndex() != -1:
+
+            if self.pug_cbox.currentIndex() != -1:
+                pasture_duration = 365
+                pug_code = self.pug_cbox.itemData(self.pug_cbox.currentIndex(), Qt.UserRole)
+                pug = self.session.query(PsPastureBoundary.pug_code, PsPastureBoundary.pug_area).filter(
+                    PsPastureBoundary.pug_code == pug_code). \
+                    group_by(PsPastureBoundary.pug_code, PsPastureBoundary.pug_area).one()
+                pasture_area = round(float(pug.pug_area), 2)
                 daats_points = daats_points\
                     .join(PsPointDetail, PsPointDaatsValue.point_detail_id == PsPointDetail.point_detail_id)\
                     .join(PsPointDetailPoints, PsPointDaatsValue.point_detail_id == PsPointDetailPoints.point_detail_id) \
@@ -1043,8 +1102,16 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                     .filter(PsPastureBoundary.pug_code == pug_code).all()
 
         if level == DAATS_LEVEL_6:
-            pug_parcel_id = self.pug_parcel_cbox.itemData(self.pug_parcel_cbox.currentIndex(), Qt.UserRole)
-            if self.bag_cbox.currentIndex() != -1:
+
+            if self.pug_parcel_cbox.currentIndex() != -1:
+                pug_parcel_id = self.pug_parcel_cbox.itemData(self.pug_parcel_cbox.currentIndex(), Qt.UserRole)
+                pug_parcel = self.session.query(PsPastureBoundary.parcel_id, PsPastureBoundary.pasture_area).filter(
+                    PsPastureBoundary.parcel_id == pug_parcel_id).\
+                    group_by(PsPastureBoundary.parcel_id, PsPastureBoundary.pasture_area).one()
+
+                pasture_duration = self.session.query(PsParcelDuration).filter(PsParcelDuration.parcel == pug_parcel_id).first()
+                pasture_duration = pasture_duration.days
+                pasture_area = round(float(pug_parcel.pasture_area), 2)
                 daats_points = daats_points\
                     .join(PsPointDetail, PsPointDaatsValue.point_detail_id == PsPointDetail.point_detail_id)\
                     .join(PsPointDetailPoints, PsPointDaatsValue.point_detail_id == PsPointDetailPoints.point_detail_id) \
@@ -1053,11 +1120,15 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                     .filter(PsPastureBoundary.parcel_id == pug_parcel_id).all()
 
         self.points_results_twidget.setRowCount(0)
+
+        pasture_rc = 0
+        pasture_biomass = 0
         count = 0
         all_sheep_unit = 0
         all_d3 = 0
         all_unelgee = 0
         for daats_point in daats_points:
+            rc = self.session.query(PsRecoveryClass).filter(PsRecoveryClass.id == daats_point.rc_id).one()
             point_detail = self.session.query(PsPointDetail).filter(PsPointDetail.point_detail_id == daats_point.point_detail_id).one()
             text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )" + \
                          '(' + str(round(daats_point.d3, 2)) + '-' +str(round(daats_point.sheep_unit, 2)) + '='+ str(round(daats_point.unelgee, 2)) +')'
@@ -1069,31 +1140,81 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             self.points_results_twidget.setItem(count, 0, item)
             count += 1
 
+            pasture_rc = pasture_rc + rc.rc_code_number
+            pasture_biomass = pasture_biomass + daats_point.biomass
+
             all_sheep_unit = all_sheep_unit + daats_point.sheep_unit
             all_d3 = all_d3 + daats_point.d3
             all_unelgee = all_unelgee + daats_point.unelgee
 
         self.point_results_label.setText(self.tr("Results: ") + str(count))
+
         avg_sheep_unit = 0
         if count == 0:
+            self.pasture_duration_edit.setText(str(0))
+            self.pasture_duration_edit.setEnabled(False)
+            self.pasture_biomass_eidt.setText('')
+            self.pasture_biomass_eidt.setEnabled(False)
+            self.pasture_rc_edit.setText('')
+            self.pasture_rc_edit.setEnabled(False)
+
+            self.avg_d3_edit.setText(str(0))
+            self.avg_d3_edit.setEnabled(False)
+            self.avg_sheep_unit_edit.setText(str(0))
+            self.avg_sheep_unit_edit.setEnabled(False)
+            self.avg_unelgee_edit.setText(str(0))
+            self.avg_unelgee_edit.setEnabled(False)
+
             return
-        if all_sheep_unit > 0:
-            avg_sheep_unit = round(all_sheep_unit/count, 2)
-        avg_d3 = 0
-        if all_d3 > 0:
-            avg_d3 = round(all_d3/count, 2)
-        # avg_unelgee = 0
-        # if all_unelgee > 0:
-        avg_unelgee = round(all_unelgee/count, 2)
-
-        self.avg_d3_edit.setText(str(avg_d3))
-        self.avg_sheep_unit_edit.setText(str(avg_sheep_unit))
-        self.avg_unelgee_edit.setText(str(avg_unelgee))
-
-        if count > 0:
-            self.avg_value_save_button.setEnabled(True)
         else:
-            self.avg_value_save_button.setEnabled(False)
+            self.pasture_duration_edit.setText(str(0))
+            self.pasture_duration_edit.setEnabled(True)
+            self.pasture_biomass_eidt.setText('')
+            self.pasture_biomass_eidt.setEnabled(True)
+            self.pasture_rc_edit.setText('')
+            self.pasture_rc_edit.setEnabled(True)
+
+            self.avg_d3_edit.setText(str(0))
+            self.avg_d3_edit.setEnabled(True)
+            self.avg_sheep_unit_edit.setText(str(0))
+            self.avg_sheep_unit_edit.setEnabled(True)
+            self.avg_unelgee_edit.setText(str(0))
+            self.avg_unelgee_edit.setEnabled(True)
+
+        avg_rc = int(pasture_rc / count)
+
+        rc = self.session.query(PsRecoveryClass).filter(PsRecoveryClass.rc_code_number == avg_rc).first()
+        rc_precent = rc.rc_precent
+
+        self.pasture_area_edit.setText(str(pasture_area))
+        self.pasture_duration_edit.setText(str(pasture_duration))
+        self.pasture_rc_edit.setText(str(avg_rc)+'-'+str(rc_precent)+'%')
+        avg_biomass = round(float(pasture_biomass / count), 2)
+        self.pasture_biomass_eidt.setText(str(avg_biomass))
+
+        rc_precent = float(rc_precent) / 100
+
+        d1 = (float(avg_biomass) / float(511)) * (rc_precent)
+        d1_100ga = d1 * 100
+        d2 = ((1 / d1))
+        d3 = (float(pasture_area) / float((pasture_duration * d2 / 365)))
+        self.avg_d3_edit.setText(str(d3))
+
+        # if all_sheep_unit > 0:
+        #     avg_sheep_unit = round(all_sheep_unit/count, 2)
+        # avg_d3 = 0
+        # if all_d3 > 0:
+        #     avg_d3 = round(all_d3/count, 2)
+        # avg_unelgee = round(all_unelgee/count, 2)
+        #
+        # self.avg_d3_edit.setText(str(avg_d3))
+        # self.avg_sheep_unit_edit.setText(str(avg_sheep_unit))
+        # self.avg_unelgee_edit.setText(str(avg_unelgee))
+        #
+        # if count > 0:
+        #     self.avg_value_save_button.setEnabled(True)
+        # else:
+        #     self.avg_value_save_button.setEnabled(False)
 
     @pyqtSlot()
     def on_avg_value_save_button_clicked(self):
@@ -1303,6 +1424,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         all_d3 = 0
         all_unelgee = 0
         for daats_point in daats_points:
+
             point_detail = self.session.query(PsPointDetail).filter(
                 PsPointDetail.point_detail_id == daats_point.point_detail_id).one()
             text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )" + \

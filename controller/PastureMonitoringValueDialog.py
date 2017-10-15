@@ -3585,6 +3585,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
 
         area_ga = float(self.area_ga_edit.text())
         biomass = self.__load_urgats()
+        rc_id = self.__load_rc().id
         rc_code = self.__load_rc().rc_code
         rc_precent = self.__load_rc().rc_precent
         duration = int(self.duration_days_edit.text())
@@ -3620,6 +3621,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
 
         area_ga = float(self.area_ga_edit.text())
         biomass = self.__load_urgats()
+        rc_id = self.__load_rc().id
         rc_code = self.__load_rc().rc_code
         rc_precent = self.__load_rc().rc_precent
         duration = int(self.duration_days_edit.text())

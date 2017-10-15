@@ -9,4 +9,5 @@ class PsRecoveryClass(Base):
 
     id = Column(Integer, primary_key=True)
     rc_code = Column(String)
+    rc_code_number = Column(Integer)
     rc_precent = Column(Integer)

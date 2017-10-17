@@ -1046,7 +1046,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         if level == DAATS_LEVEL_2:
 
             if self.aimag_cbox.currentIndex() != -1:
-                pasture_duration = 365
+                pasture_duration = 180
                 au1_code = self.aimag_cbox.itemData(self.aimag_cbox.currentIndex(), Qt.UserRole)
                 aimag = self.session.query(AuLevel1).filter(AuLevel1.code == au1_code).one()
                 pasture_area = round(float(aimag.area_m2 / 10000), 2)
@@ -1060,7 +1060,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         if level == DAATS_LEVEL_3:
 
             if self.soum_cbox.currentIndex() != -1:
-                pasture_duration = 365
+                pasture_duration = 180
                 au2_code = self.soum_cbox.itemData(self.soum_cbox.currentIndex(), Qt.UserRole)
                 soum = self.session.query(AuLevel2).filter(AuLevel2.code == au2_code).one()
                 pasture_area = round(float(soum.area_m2 / 10000), 2)
@@ -1074,7 +1074,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         if level == DAATS_LEVEL_4:
 
             if self.bag_cbox.currentIndex() != -1:
-                pasture_duration = 365
+                pasture_duration = 180
                 au3_code = self.bag_cbox.itemData(self.bag_cbox.currentIndex(), Qt.UserRole)
                 bag = self.session.query(AuLevel3).filter(AuLevel3.code == au3_code).one()
                 pasture_area = round(float(bag.area_m2 / 10000), 2)
@@ -1088,7 +1088,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         if level == DAATS_LEVEL_5:
 
             if self.pug_cbox.currentIndex() != -1:
-                pasture_duration = 365
+                pasture_duration = 180
                 pug_code = self.pug_cbox.itemData(self.pug_cbox.currentIndex(), Qt.UserRole)
                 pug = self.session.query(PsPastureBoundary.pug_code, PsPastureBoundary.pug_area).filter(
                     PsPastureBoundary.pug_code == pug_code). \
@@ -1127,6 +1127,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         all_sheep_unit = 0
         all_d3 = 0
         all_unelgee = 0
+        all_present = 0
         for daats_point in daats_points:
             rc = self.session.query(PsRecoveryClass).filter(PsRecoveryClass.id == daats_point.rc_id).one()
             point_detail = self.session.query(PsPointDetail).filter(PsPointDetail.point_detail_id == daats_point.point_detail_id).one()
@@ -1146,6 +1147,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             all_sheep_unit = all_sheep_unit + daats_point.sheep_unit
             all_d3 = all_d3 + daats_point.d3
             all_unelgee = all_unelgee + daats_point.unelgee
+            all_present = all_present + daats_point.rc_precent
 
         self.point_results_label.setText(self.tr("Results: ") + str(count))
 
@@ -1185,19 +1187,19 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         rc = self.session.query(PsRecoveryClass).filter(PsRecoveryClass.rc_code_number == avg_rc).first()
         rc_precent = rc.rc_precent
-
+        avg_present = all_present/count
         self.pasture_area_edit.setText(str(pasture_area))
         self.pasture_duration_edit.setText(str(pasture_duration))
-        self.pasture_rc_edit.setText(str(avg_rc)+'-'+str(rc_precent)+'%')
+        self.pasture_rc_edit.setText(str(avg_present))
+
         avg_biomass = round(float(pasture_biomass / count), 2)
         self.pasture_biomass_eidt.setText(str(avg_biomass))
+        biomass_present = avg_biomass*avg_present/100
+        self.pasture_biomass_present_edit.setText(str(biomass_present))
 
         rc_precent = float(rc_precent) / 100
 
-        d1 = (float(avg_biomass) / float(511)) * (rc_precent)
-        d1_100ga = d1 * 100
-        d2 = ((1 / d1))
-        d3 = (float(pasture_area) / float((pasture_duration * d2 / 365)))
+        d3 = (float(pasture_area)*biomass_present / float(pasture_duration*1.4))
         self.avg_d3_edit.setText(str(d3))
 
         # if all_sheep_unit > 0:

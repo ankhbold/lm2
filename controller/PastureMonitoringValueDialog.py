@@ -3117,12 +3117,13 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         sheep_unit_plant = self.__load_sheep_unit_biomass()
         sheep_unit = self.__load_live_stock_convert()
         rc_precent_d = rc_precent
-        rc_precent = float(rc_precent) / 100
 
+        rc_precent = float(rc_precent) / 100
+        biomass_present = float(biomass) * rc_precent
         d1 = (float(biomass) / float(sheep_unit_plant)) * (rc_precent)
         d1_100ga = d1 * 100
         d2 = ((1 / d1))
-        d3 = (float(area_ga) / float((duration * d2 / 365)))
+        d3 = float(area_ga * biomass_present) / float(sheep_unit_plant)
         unelgee = d3 - float(sheep_unit)
 
         self.calc_d1_edit.setText(str(round(d1, 2)))
@@ -3601,12 +3602,14 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         self.calc_sheep_unit_plant_sbox.setValue(sheep_unit_plant)
 
         rc_precent = float(rc_precent)/100
-
+        biomass_present = float(biomass) * rc_precent
         d1 = (float(biomass)/float(sheep_unit_plant))*(rc_precent)
         d1_100ga = d1*100
         d2 = ((1/d1))
-        d3 = (float(area_ga)/float((duration*d2/365)))
+        d3 = float(area_ga * biomass_present) / float(sheep_unit_plant)
         unelgee = d3 - float(sheep_unit)
+
+        self.biomass_present_edit.setText(str(biomass_present))
 
         self.calc_d1_edit.setText(str(round(d1,2)))
         self.calc_d1_100ga_edit.setText(str(round(d1_100ga, 2)))
@@ -3628,12 +3631,13 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
         sheep_unit_plant = self.__load_sheep_unit_biomass()
         sheep_unit = self.__load_live_stock_convert()
         rc_precent_d = rc_precent
-        rc_precent = float(rc_precent) / 100
 
+        rc_precent = float(rc_precent) / 100
+        biomass_present = float(biomass) * rc_precent
         d1 = (float(biomass) / float(sheep_unit_plant)) * (rc_precent)
         d1_100ga = d1 * 100
         d2 = ((1 / d1))
-        d3 = (float(area_ga) / float((duration * d2 / 365)))
+        d3 = float(area_ga * biomass_present) / float(sheep_unit_plant)
         unelgee = d3 - float(sheep_unit)
 
         self.calc_d1_edit.setText(str(round(d1, 2)))
@@ -3664,6 +3668,7 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
             daats.d2 = d2
             daats.d3 = d3
             daats.unelgee = unelgee
+            daats.rc_id = rc_id
 
             self.session.add(daats)
         elif daats_count == 1:
@@ -3683,3 +3688,4 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
             daats.d2 = d2
             daats.d3 = d3
             daats.unelgee = unelgee
+            daats.rc_id = rc_id

@@ -637,7 +637,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
             <rect>
              <x>6</x>
              <y>204</y>
-             <width>121</width>
+             <width>106</width>
              <height>16</height>
             </rect>
            </property>
@@ -650,7 +650,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
             <rect>
              <x>3</x>
              <y>224</y>
-             <width>110</width>
+             <width>95</width>
              <height>20</height>
             </rect>
            </property>
@@ -705,7 +705,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
             <rect>
              <x>6</x>
              <y>164</y>
-             <width>101</width>
+             <width>95</width>
              <height>16</height>
             </rect>
            </property>
@@ -716,9 +716,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLineEdit" name="pasture_biomass_eidt">
            <property name="geometry">
             <rect>
-             <x>200</x>
+             <x>190</x>
              <y>184</y>
-             <width>80</width>
+             <width>70</width>
              <height>20</height>
             </rect>
            </property>
@@ -731,7 +731,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
             <rect>
              <x>3</x>
              <y>184</y>
-             <width>101</width>
+             <width>95</width>
              <height>20</height>
             </rect>
            </property>
@@ -742,9 +742,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLabel" name="label_13">
            <property name="geometry">
             <rect>
-             <x>200</x>
+             <x>190</x>
              <y>164</y>
-             <width>81</width>
+             <width>71</width>
              <height>16</height>
             </rect>
            </property>
@@ -755,7 +755,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLabel" name="label_14">
            <property name="geometry">
             <rect>
-             <x>113</x>
+             <x>105</x>
              <y>164</y>
              <width>81</width>
              <height>16</height>
@@ -768,7 +768,7 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLineEdit" name="pasture_duration_edit">
            <property name="geometry">
             <rect>
-             <x>112</x>
+             <x>104</x>
              <y>184</y>
              <width>80</width>
              <height>20</height>
@@ -781,9 +781,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLineEdit" name="pasture_rc_edit">
            <property name="geometry">
             <rect>
-             <x>286</x>
+             <x>266</x>
              <y>184</y>
-             <width>80</width>
+             <width>27</width>
              <height>20</height>
             </rect>
            </property>
@@ -794,14 +794,14 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLabel" name="label_15">
            <property name="geometry">
             <rect>
-             <x>286</x>
+             <x>266</x>
              <y>164</y>
-             <width>81</width>
+             <width>21</width>
              <height>16</height>
             </rect>
            </property>
            <property name="text">
-            <string>RC-Present</string>
+            <string>%</string>
            </property>
           </widget>
           <widget class="QPushButton" name="zoom_points_button">
@@ -815,6 +815,32 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
            </property>
            <property name="text">
             <string>Zoom Points</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="pasture_biomass_present_edit">
+           <property name="geometry">
+            <rect>
+             <x>298</x>
+             <y>184</y>
+             <width>70</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_16">
+           <property name="geometry">
+            <rect>
+             <x>298</x>
+             <y>164</y>
+             <width>50</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Bio mass</string>
            </property>
           </widget>
          </widget>

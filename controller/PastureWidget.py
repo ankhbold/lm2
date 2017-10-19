@@ -78,6 +78,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         self.__setup_twidgets()
         self.__load_role_settings()
         self.__setup_combo_boxes()
+        self.__setup_validators()
 
         self.working_l1_cbox.currentIndexChanged.connect(self.__working_l1_changed)
         self.working_l2_cbox.currentIndexChanged.connect(self.__working_l2_changed)
@@ -86,7 +87,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         self.numbers_validator = QRegExpValidator(QRegExp("[0-9]+\\.[0-9]{3}"), None)
         self.int_validator_2 = QRegExpValidator(QRegExp("[0-9]{3}"), None)
-        self.int_validator_3 = QRegExpValidator(QRegExp("[0-9]"), None)
+        self.int_validator_3 = QRegExpValidator(QRegExp("[0-9]{10}"), None)
 
         self.pasture_duration_edit.setValidator(self.int_validator_2)
         self.avg_sheep_unit_edit.setValidator(self.int_validator_3)
@@ -1131,8 +1132,9 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
         for daats_point in daats_points:
             rc = self.session.query(PsRecoveryClass).filter(PsRecoveryClass.id == daats_point.rc_id).one()
             point_detail = self.session.query(PsPointDetail).filter(PsPointDetail.point_detail_id == daats_point.point_detail_id).one()
-            text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )" + \
-                         '(' + str(round(daats_point.d3, 2)) + '-' +str(round(daats_point.sheep_unit, 2)) + '='+ str(round(daats_point.unelgee, 2)) +')'
+            # text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )" + \
+            #              '(' + str(round(daats_point.d3, 2)) + '-' +str(round(daats_point.sheep_unit, 2)) + '='+ str(round(daats_point.unelgee, 2)) +')'
+            text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )"
             item = QTableWidgetItem(text_value)
             item.setBackground(Qt.gray)
             item.setIcon(QIcon(QPixmap(":/plugins/lm2/application.png")))
@@ -1166,7 +1168,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             self.avg_sheep_unit_edit.setEnabled(False)
             self.avg_unelgee_edit.setText(str(0))
             self.avg_unelgee_edit.setEnabled(False)
-
+            self.avg_value_save_button.setEnabled(False)
             return
         else:
             self.pasture_duration_edit.setText(str(0))
@@ -1182,6 +1184,7 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
             self.avg_sheep_unit_edit.setEnabled(True)
             self.avg_unelgee_edit.setText(str(0))
             self.avg_unelgee_edit.setEnabled(True)
+            self.avg_value_save_button.setEnabled(True)
 
         avg_rc = int(pasture_rc / count)
 
@@ -1199,24 +1202,15 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
         rc_precent = float(rc_precent) / 100
 
-        d3 = (float(pasture_area)*biomass_present / float(pasture_duration*1.4))
+        d3 = self.__calculate_capacity(pasture_area, biomass_present, pasture_duration)
+
         self.avg_d3_edit.setText(str(d3))
 
-        # if all_sheep_unit > 0:
-        #     avg_sheep_unit = round(all_sheep_unit/count, 2)
-        # avg_d3 = 0
-        # if all_d3 > 0:
-        #     avg_d3 = round(all_d3/count, 2)
-        # avg_unelgee = round(all_unelgee/count, 2)
-        #
-        # self.avg_d3_edit.setText(str(avg_d3))
-        # self.avg_sheep_unit_edit.setText(str(avg_sheep_unit))
-        # self.avg_unelgee_edit.setText(str(avg_unelgee))
-        #
-        # if count > 0:
-        #     self.avg_value_save_button.setEnabled(True)
-        # else:
-        #     self.avg_value_save_button.setEnabled(False)
+    def __calculate_capacity(self, area, biomass_present, duration):
+
+        d3 = int(float(area) * biomass_present / float(duration * 1.4))
+
+        return d3
 
     @pyqtSlot()
     def on_avg_value_save_button_clicked(self):
@@ -1429,9 +1423,10 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
 
             point_detail = self.session.query(PsPointDetail).filter(
                 PsPointDetail.point_detail_id == daats_point.point_detail_id).one()
-            text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )" + \
-                         '(' + str(round(daats_point.d3, 2)) + '-' + str(round(daats_point.sheep_unit, 2)) + '=' + str(
-                round(daats_point.unelgee, 2)) + ')'
+            # text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )" + \
+            #              '(' + str(round(daats_point.d3, 2)) + '-' + str(round(daats_point.sheep_unit, 2)) + '=' + str(
+            #     round(daats_point.unelgee, 2)) + ')'
+            text_value = str(daats_point.point_detail_id) + " ( " + unicode(point_detail.land_name) + " )"
             item = QTableWidgetItem(text_value)
             item.setBackground(Qt.gray)
             item.setIcon(QIcon(QPixmap(":/plugins/lm2/application.png")))
@@ -1556,3 +1551,47 @@ class PastureWidget(QDockWidget, Ui_PastureWidget, DatabaseHelper):
                     avg_daats.avg_unelgee = avg_unelgee
 
         self.session.commit()
+
+    def __is_number(self, s):
+
+        try:
+            float(s)  # for int, long and float
+        except ValueError:
+            try:
+                complex(s)  # for complex
+            except ValueError:
+                return False
+
+        return True
+
+    @pyqtSlot(str)
+    def on_pasture_duration_edit_textChanged(self, text):
+
+        if not self.__is_number(text):
+            return
+
+        if not self.__is_number(self.pasture_area_edit.text()):
+            return
+
+        if not self.__is_number(self.pasture_biomass_present_edit.text()):
+            return
+
+        pasture_area = float(self.pasture_area_edit.text())
+        pasture_duration = int(text)
+        biomass_present = float(self.pasture_biomass_present_edit.text())
+        d3 = self.__calculate_capacity(pasture_area, biomass_present, pasture_duration)
+        self.avg_d3_edit.setText(str(d3))
+
+    @pyqtSlot(str)
+    def on_avg_sheep_unit_edit_textChanged(self, text):
+
+        if not self.__is_number(text):
+            return
+
+        if not self.__is_number(self.avg_d3_edit.text()):
+            return
+
+        d3 = int(self.avg_d3_edit.text())
+
+        unelgee = d3-int(text)
+        self.avg_unelgee_edit.setText(str(unelgee))

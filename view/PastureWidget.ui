@@ -609,9 +609,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLabel" name="label_5">
            <property name="geometry">
             <rect>
-             <x>256</x>
+             <x>270</x>
              <y>204</y>
-             <width>110</width>
+             <width>98</width>
              <height>16</height>
             </rect>
            </property>
@@ -622,9 +622,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
           <widget class="QLineEdit" name="avg_unelgee_edit">
            <property name="geometry">
             <rect>
-             <x>256</x>
+             <x>267</x>
              <y>224</y>
-             <width>110</width>
+             <width>101</width>
              <height>20</height>
             </rect>
            </property>
@@ -672,11 +672,14 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
            </property>
           </widget>
           <widget class="QLineEdit" name="avg_sheep_unit_edit">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="geometry">
             <rect>
-             <x>130</x>
+             <x>104</x>
              <y>224</y>
-             <width>110</width>
+             <width>156</width>
              <height>20</height>
             </rect>
            </property>
@@ -766,6 +769,9 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
            </property>
           </widget>
           <widget class="QLineEdit" name="pasture_duration_edit">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="geometry">
             <rect>
              <x>104</x>
@@ -835,12 +841,12 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
             <rect>
              <x>298</x>
              <y>164</y>
-             <width>50</width>
+             <width>71</width>
              <height>16</height>
             </rect>
            </property>
            <property name="text">
-            <string>Bio mass</string>
+            <string>Bio mass %</string>
            </property>
           </widget>
          </widget>
@@ -1076,19 +1082,6 @@ font: 75 14pt &quot;Helvetica&quot;;</string>
             <number>2017</number>
            </property>
           </widget>
-         </widget>
-         <widget class="QLabel" name="label_51">
-          <property name="geometry">
-           <rect>
-            <x>157</x>
-            <y>182</y>
-            <width>211</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Боломжит ХТ- Одоо байгаа ХТ = Үнэлгээ</string>
-          </property>
          </widget>
         </widget>
         <widget class="QWidget" name="tab_4">

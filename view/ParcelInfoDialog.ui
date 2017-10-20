@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>415</width>
-    <height>690</height>
+    <height>700</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -75,7 +75,7 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="parcel_person_tab">
        <attribute name="title">
@@ -594,6 +594,52 @@
           </property>
           <property name="text">
            <string>Khashaa</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="building_edit">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>98</y>
+            <width>166</width>
+            <height>20</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_35">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>82</y>
+            <width>166</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Building Number</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="apartment_edit">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>137</y>
+            <width>166</width>
+            <height>20</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_36">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>121</y>
+            <width>166</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Apartment Number</string>
           </property>
          </widget>
         </widget>
@@ -1562,7 +1608,7 @@
           <x>10</x>
           <y>61</y>
           <width>361</width>
-          <height>95</height>
+          <height>130</height>
          </rect>
         </property>
         <column>
@@ -1643,7 +1689,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>166</y>
+          <y>190</y>
           <width>361</width>
           <height>16</height>
          </rect>
@@ -1656,9 +1702,9 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>190</y>
+          <y>206</y>
           <width>361</width>
-          <height>177</height>
+          <height>161</height>
          </rect>
         </property>
         <column>
@@ -1776,10 +1822,10 @@
        <widget class="QTabWidget" name="tabWidget_3">
         <property name="geometry">
          <rect>
-          <x>0</x>
-          <y>160</y>
-          <width>377</width>
-          <height>211</height>
+          <x>3</x>
+          <y>194</y>
+          <width>375</width>
+          <height>180</height>
          </rect>
         </property>
         <property name="currentIndex">
@@ -2229,9 +2275,9 @@
           <property name="geometry">
            <rect>
             <x>5</x>
-            <y>3</y>
+            <y>0</y>
             <width>361</width>
-            <height>177</height>
+            <height>150</height>
            </rect>
           </property>
           <column>
@@ -2278,7 +2324,7 @@
           <x>10</x>
           <y>60</y>
           <width>361</width>
-          <height>95</height>
+          <height>135</height>
          </rect>
         </property>
         <column>

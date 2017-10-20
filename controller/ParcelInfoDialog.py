@@ -88,6 +88,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         self.__setup_validators()
         self.__setup_table_widget()
         self.__setup_cbox()
+        self.__setup_combo_boxes()
         self.__setup_permissions()
         self.duration_sbox.setMaximum(60)
         self.tab_index = 0
@@ -101,6 +102,91 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         self.contract_date.dateChanged.connect(self.on_contract_date_DateChanged)
         self.end_date.dateChanged.connect(self.on_end_date_DateChanged)
         self.own_date.dateChanged.connect(self.on_own_date_DateChanged)
+
+    @pyqtSlot(int)
+    def on_soum_cbox_currentIndexChanged(self, index):
+
+        soum = self.soum_cbox.itemData(index)
+
+        self.bag_cbox.clear()
+        self.bag_cbox.addItem("*", -1)
+        bag_list = []
+
+        if soum == -1 or not soum:
+            return
+        else:
+            try:
+                bag_list = self.session.query(AuLevel3.code, AuLevel3.name).filter(AuLevel3.code.like(soum + "%")).all()
+            except SQLAlchemyError, e:
+                PluginUtils.show_error(self, self.tr("Database Query Error"),
+                                       self.tr("Could not execute: {0}").format(e.message))
+                self.reject()
+
+        for au_level3 in bag_list:
+            self.bag_cbox.addItem(au_level3.name, au_level3.code)
+
+    @pyqtSlot(int)
+    def on_aimag_cbox_currentIndexChanged(self, index):
+
+        aimag = self.aimag_cbox.itemData(index)
+        self.soum_cbox.clear()
+        self.bag_cbox.clear()
+
+        self.soum_cbox.addItem("*", -1)
+        self.bag_cbox.addItem("*", -1)
+
+        soum_list = []
+        bag_list = []
+
+        if aimag == -1:
+            soum_list = self.session.query(AuLevel2).all()
+            for au_level2 in soum_list:
+                if au_level2.code[:2] == '01':
+                    self.soum_cbox.addItem(au_level2.name, au_level2.code)
+
+        else:
+            try:
+
+                soum_list = self.session.query(AuLevel2.name, AuLevel2.code).filter(
+                    AuLevel2.code.like(aimag + "%")).all()
+                bag_list = self.session.query(AuLevel3.name, AuLevel3.code).filter(
+                    AuLevel3.code.like(aimag + "%")).all()
+
+            except SQLAlchemyError, e:
+                PluginUtils.show_error(self, self.tr("Database Query Error"),
+                                       self.tr("Could not execute: {0}").format(e.message))
+                self.reject()
+
+            for au_level2 in soum_list:
+                self.soum_cbox.addItem(au_level2.name, au_level2.code)
+
+            for au_level3 in bag_list:
+                self.bag_cbox.addItem(au_level3.name, au_level3.code)
+
+
+    def __setup_combo_boxes(self):
+
+        aimag_list = []
+
+        try:
+            aimag_list = self.session.query(AuLevel1.name, AuLevel1.code).\
+                filter(AuLevel1.code != '013').filter(AuLevel1.code != '012').order_by(AuLevel1.name.desc()).all()
+
+        except SQLAlchemyError, e:
+            PluginUtils.show_error(self, self.tr("Database Query Error"), self.tr("Could not execute: {0}").format(e.message))
+            self.reject()
+
+        self.aimag_cbox.addItem("*", -1)
+
+
+        for auLevel1 in aimag_list:
+            self.aimag_cbox.addItem(auLevel1.name, auLevel1.code)
+
+        working_aimag = DatabaseUtils.working_l1_code()
+        working_soum = DatabaseUtils.working_l2_code()
+        self.aimag_cbox.setCurrentIndex(self.aimag_cbox.findData(working_aimag))
+        self.soum_cbox.setCurrentIndex(self.soum_cbox.findData(working_soum))
+
 
     def __is_aimag_tool(self):
 
@@ -236,22 +322,22 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         self.landuk_info_twidget.setAlternatingRowColors(True)
         self.landuk_info_twidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.landuk_info_twidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.landuk_info_twidget.cellChanged.connect(self.on_fee_info_twidget_cellChanged)
+        self.landuk_info_twidget.cellChanged.connect(self.on_landuk_info_twidget_cellChanged)
 
         self.landuk_mortgage_twidget.setAlternatingRowColors(True)
         self.landuk_mortgage_twidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.landuk_mortgage_twidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.landuk_mortgage_twidget.cellChanged.connect(self.on_fee_info_twidget_cellChanged)
+        # self.landuk_mortgage_twidget.cellChanged.connect(self.on_fee_info_twidget_cellChanged)
 
         self.lpis_info_twidget.setAlternatingRowColors(True)
         self.lpis_info_twidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.lpis_info_twidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.lpis_info_twidget.cellChanged.connect(self.on_fee_info_twidget_cellChanged)
+        self.lpis_info_twidget.cellChanged.connect(self.on_lpis_info_twidget_cellChanged)
 
         self.lpis_co_owner_twidget.setAlternatingRowColors(True)
         self.lpis_co_owner_twidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.lpis_co_owner_twidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.lpis_co_owner_twidget.cellChanged.connect(self.on_fee_info_twidget_cellChanged)
+        # self.lpis_co_owner_twidget.cellChanged.connect(self.on_fee_info_twidget_cellChanged)
 
     def __update_ui(self):
 
@@ -672,8 +758,33 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
             # lpis
             self.__load_lpis(person_id, old_parcel_id)
+
+            # person address
+            self.__load_pesron_address(person_id)
+
         except SQLAlchemyError, e:
             self.rollback()
+
+    def __load_pesron_address(self, person_id):
+
+        soum_code = DatabaseUtils.working_l2_code()
+
+        sql = "select person.register, person.street, person.khashaa " \
+              "from ub_fee_person person " \
+                                     "where person.register like :person_id " \
+                                     "group by person.register, person.street, person.khashaa "
+
+        result = self.session.execute(sql, {'person_id': person_id})
+
+
+        for item_row in result:
+
+            person_id = item_row[0]
+            street = item_row[1]
+            khashaa = item_row[2]
+
+            self.person_street_name_edit.setText((street))
+            self.person_khashaa_edit.setText((khashaa))
 
     def __load_lpis(self, person_id, old_parcel_id):
 
@@ -1719,6 +1830,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         if object_id:
             self.__save_subject(object_id)
         self.session.commit()
+        PluginUtils.show_message(self, self.tr("LM2", "Success"), self.tr("Success saved"))
 
     @pyqtSlot(str)
     def on_zoriulalt_edit_textChanged(self, text):
@@ -2258,6 +2370,37 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             self.__save_contract_owner()
             self.session.commit()
 
+    def __multi_owner_save(self, person_id):
+
+        register = person_id
+
+        sql = "select register, ovog,ner ,hen,zahid " \
+              "from ub_lpis_co info " \
+              "where oregister = :register "
+
+        result = self.session.execute(sql, {'register': register})
+        row = 0
+        for item_row in result:
+            person_id = item_row[0]
+            name = item_row[1]
+            first_name = item_row[2]
+
+            person_count = self.session.query(BsPerson).filter(BsPerson.person_id == person_id).count()
+            if person_count > 0:
+                bs_person = self.session.query(BsPerson).filter(BsPerson.person_id == person_id).one()
+            else:
+                bs_person = BsPerson()
+
+            bs_person.person_id = person_id
+            bs_person.name = name
+            bs_person.first_name = first_name
+
+            if person_count == 0:
+                self.session.add(bs_person)
+
+            self.session.flush()
+
+
     def __generate_record_number(self):
 
         qt_date = self.own_date.date()
@@ -2434,6 +2577,35 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
         self.application.stakeholders.append(app_person_role)
 
+        self.__multi_applicant_save(person_id, self.application)
+
+    def __multi_applicant_save(self, person_id, application):
+
+        register = person_id
+
+        sql = "select register, ovog,ner ,hen,zahid " \
+              "from ub_lpis_co info " \
+              "where oregister = :register "
+
+        result = self.session.execute(sql, {'register': register})
+        row = 0
+        for item_row in result:
+            person_id = item_row[0]
+            person = self.session.query(BsPerson).filter(BsPerson.person_id == person_id).one()
+            role_ref = self.session.query(ClPersonRole).filter_by(
+                code=Constants.APPLICANT_ROLE_CODE).one()
+
+            app_person_role = CtApplicationPersonRole()
+            app_person_role.application = self.application.app_no
+            app_person_role.share = Decimal(0)
+            app_person_role.role = Constants.APPLICANT_ROLE_CODE
+            app_person_role.role_ref = role_ref
+            app_person_role.person = person.person_id
+            app_person_role.person_ref = person
+            app_person_role.main_applicant = True
+
+            self.application.stakeholders.append(app_person_role)
+
     def __save_person(self):
 
         person_id = self.personal_id_edit.text()
@@ -2458,8 +2630,33 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
         bs_person.date_of_birth = DatabaseUtils.convert_date(self.date_of_birth_date.date())
         bs_person.mobile_phone = self.phone_edit.text()
-        self.session.add(bs_person)
+        bs_person.address_building_no = self.building_edit.text()
+        bs_person.address_apartment_no = self.apartment_edit.text()
+        bs_person.address_street_name = self.person_street_name_edit.text()
+        bs_person.address_khaskhaa = self.person_khashaa_edit.text()
+
+        aimag = self.aimag_cbox.itemData(self.aimag_cbox.currentIndex())
+        if aimag == -1:
+            bs_person.au_level1_ref = None
+        else:
+            bs_person.address_au_level1 = aimag
+
+        soum = self.soum_cbox.itemData(self.soum_cbox.currentIndex())
+        if soum == -1:
+            bs_person.address_au_level2 = None
+        else:
+            bs_person.address_au_level2 = soum
+
+        bag = self.bag_cbox.itemData(self.bag_cbox.currentIndex())
+        if bag == -1:
+            bs_person.address_au_level3 = None
+        else:
+            bs_person.address_au_level3 = bag
+        if person_count == 0:
+            self.session.add(bs_person)
         self.session.flush()
+
+        self.__multi_owner_save(person_id)
 
     def __save_parcel(self):
 
@@ -2475,8 +2672,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             parcel = CaParcel()
 
         if parcel_count == 0:
-            print "kkkkk"
-            print parcel_id
             parcel.parcel_id = parcel_id
         parcel.old_parcel_id = old_parcel_id
         parcel.geo_id = old_parcel_id
@@ -2663,6 +2858,48 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
                             self.doc_twidget.setItem(row, 1, item_description)
                             self.doc_twidget.setItem(row, 2, item_view)
             self.__load_doc_info()
+
+    @pyqtSlot(int, int)
+    def on_lpis_info_twidget_cellChanged(self, row, column):
+
+        changed_item = self.lpis_info_twidget.item(row, column)
+        if changed_item:
+            if changed_item.checkState() == Qt.Checked:
+                if column == 0:
+                    self.personal_id_edit.setText(changed_item.text())
+                if column == 1:
+                    self.first_name_edit.setText(changed_item.text())
+                if column == 2:
+                    self.name_edit.setText(changed_item.text())
+                if column == 3:
+                    self.phone_edit.setText(changed_item.text())
+                if column == 5:
+                    self.person_street_name_edit.setText(changed_item.text())
+                if column == 6:
+                    self.parcel_id_edit.setText(changed_item.text())
+                if column == 9:
+                    self.decision_no_edit.setText(changed_item.text())
+                if column == 10:
+                    self.record_cert_edit.setText(changed_item.text())
+
+    @pyqtSlot(int, int)
+    def on_landuk_info_twidget_cellChanged(self, row, column):
+
+        changed_item = self.landuk_info_twidget.item(row, column)
+        if changed_item:
+            if changed_item.checkState() == Qt.Checked:
+                if column == 0:
+                    self.personal_id_edit.setText(changed_item.text())
+                if column == 1:
+                    self.middle_name_edit.setText(changed_item.text())
+                if column == 2:
+                    self.name_edit.setText(changed_item.text())
+                if column == 3:
+                    self.first_name_edit.setText(changed_item.text())
+                if column == 4:
+                    self.person_street_name_edit.setText(changed_item.text())
+                if column == 5:
+                    self.phone_edit.setText(changed_item.text())
 
     @pyqtSlot(int, int)
     def on_fee_info_twidget_cellChanged(self, row, column):
@@ -2958,12 +3195,14 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         self.lpis_co_owner_twidget.setRowCount(0)
 
         selected_row = self.lpis_info_twidget.currentRow()
+        if selected_row == -1:
+            return
         register = self.lpis_info_twidget.item(selected_row, 0).data(Qt.UserRole)
         lpis_id = self.lpis_info_twidget.item(selected_row, 0).data(Qt.UserRole + 1)
 
         sql = "select register, ovog,ner ,hen,zahid " \
               "from ub_lpis_co info " \
-              "where register = :register "
+              "where oregister = :register "
 
         result = self.session.execute(sql, {'register': register})
         row = 0

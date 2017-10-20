@@ -55,11 +55,12 @@ class ParcelInfoFeeDialog(QDialog, Ui_ParcelInfoFeeDialog):
 
 
         self.fee_info_twidget.setRowCount(0)
+        soum_code = DatabaseUtils.working_l2_code()
 
         sql = "select fee_year, year_fee, m2_fee, subsidized_fee_rate, left_previous_year, surplus_previous_year, payable_year, offset_fee, control_1, " \
               "quarterly1_fee, quarterly2_fee, quarterly3_fee, quarterly4_fee, payment_year, fee.objectid " \
               "from ub_fee fee " \
-              "join ub_data.ub_fee_person person on fee.pid = person.pid::text " \
+              "join s"+soum_code+".ub_fee_person person on fee.pid = person.pid::text " \
               "where fee.pid::text like :pid and person.register like :person_id " \
               "group by fee_year, year_fee, m2_fee, subsidized_fee_rate, left_previous_year, surplus_previous_year, payable_year, offset_fee, control_1, " \
               "quarterly1_fee, quarterly2_fee, quarterly3_fee, quarterly4_fee, payment_year, fee.objectid "
@@ -157,13 +158,14 @@ class ParcelInfoFeeDialog(QDialog, Ui_ParcelInfoFeeDialog):
         selected_row = self.fee_info_twidget.currentRow()
         person_id = self.fee_info_twidget.item(selected_row, 0).text()
         object_id = self.fee_info_twidget.item(selected_row, 0).data(Qt.UserRole)
+        soum_code = DatabaseUtils.working_l2_code()
 
         sql = "select quarterly1_paid, quarterly2_paid, quarterly3_paid, quarterly4_paid, all_paid, " \
               "left_previous_year_paid, payment_year_paid, offset_paid, frequency_paid, fine_paid, city_all_paid, district_all_paid, " \
               "cancel_paid, cancel_other_paid, left_paid, surplus_paid, transfer_decision, decsription, " \
               "decision_date, decision_no, fee.pid, landuse_desc, landuse_code, area_m2 " \
               "from ub_fee fee " \
-              "join ub_data.ub_fee_person person on fee.pid = person.pid::text " \
+              "join s"+soum_code+".ub_fee_person person on fee.pid = person.pid::text " \
               "where fee.objectid = :object_id "
 
         result = self.session.execute(sql, {'object_id': object_id})

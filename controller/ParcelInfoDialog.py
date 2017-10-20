@@ -4,6 +4,7 @@ __author__ = 'B.Ankhbold'
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtXml import *
+from geoalchemy2.elements import WKTElement
 from qgis.core import *
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func, or_, and_, desc
@@ -3247,6 +3248,12 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         mc.setExtent(rect)
         # Refresh the map
         mc.refresh()
+
+        geom_spot4 = QgsPoint(x, y)
+        geometry = QgsGeometry.fromPoint(geom_spot4)
+
+        geometry = WKTElement(geometry.exportToWkt(), srid=4326)
+        print geometry
 
     def newOnkeyPressEvent(self, e):
         if self.is_find_ubgis:

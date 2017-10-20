@@ -2392,6 +2392,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
                 bs_person = BsPerson()
 
             bs_person.person_id = person_id
+            bs_person.type = 10
             bs_person.name = name
             bs_person.first_name = first_name
 

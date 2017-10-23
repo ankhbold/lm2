@@ -45,6 +45,7 @@ from .qt_classes.UbDocumentViewDelegate import UbDocumentViewDelegate
 import math
 import locale
 import os
+import pyproj
 import urllib2
 import shutil
 import sys
@@ -3237,6 +3238,17 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
     def __find_coordinate(self, x, y):
 
         scale = self.point_scale_sbox.value()
+        if self.coordinate_chbox.isChecked():
+            p = pyproj.Proj(
+                "+proj=tmerc +lat_0=0 +lon_0=105 +k=1 +x_0=500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+
+            lon, lat = p(x, y, inverse=True)
+            x = lon
+            y = lat
+
+            p = pyproj.Proj(proj='utm', zone=48, ellps='WGS84')
+            x, y = p(x, y)
+
         rect = QgsRectangle(
             float(x) - scale,
             float(y) - scale,
@@ -3244,16 +3256,23 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             float(y) + scale)
 
         mc = self.plugin.iface.mapCanvas()
-        # Set the extent to our new rectangle
         mc.setExtent(rect)
-        # Refresh the map
         mc.refresh()
 
-        geom_spot4 = QgsPoint(x, y)
-        geometry = QgsGeometry.fromPoint(geom_spot4)
+    @staticmethod
+    def __utm_proj4def_from_point_itrf(point):
 
-        geometry = WKTElement(geometry.exportToWkt(), srid=4326)
-        print geometry
+        proj4Def = ""
+        zoneNumber = ((point.x() + 180) / 6) + 1
+        zoneNumber = str(zoneNumber).split(".")[0]
+
+        proj4Def = "tmerc +lat_0=0 +lon_0=105 +k=1 +x_0=500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+        # if point.y() < 0:
+        #     proj4Def = "+proj=utm +zone={0} +south +datum=WGS84 +units=m +no_defs".format(zoneNumber)
+        # else:
+        #     proj4Def = "+proj=utm +zone={0} +datum=WGS84 +units=m +no_defs".format(zoneNumber)
+
+        return proj4Def
 
     def newOnkeyPressEvent(self, e):
         if self.is_find_ubgis:

@@ -2761,6 +2761,20 @@ class ApplicationsPastureDialog(QDialog, Ui_ApplicationsPastureDialog, DatabaseH
         try:
             count = 0
             pasture = self.session.query(ClPastureType).filter(ClPastureType.code == pasture_item).one()
+            being_month = 1
+            end_month = 12
+            if pasture.code == 17:
+                being_month = 6
+                end_month = 8
+            elif pasture.code == 18:
+                being_month = 9
+                end_month = 11
+            elif pasture.code == 20:
+                being_month = 12
+                end_month = 2
+            elif pasture.code == 18:
+                being_month = 3
+                end_month = 5
 
             item = QTableWidgetItem((pasture.description))
             item.setIcon(QIcon(QPixmap(":/plugins/lm2_pasture/bag.png")))
@@ -2769,16 +2783,16 @@ class ApplicationsPastureDialog(QDialog, Ui_ApplicationsPastureDialog, DatabaseH
             self.pasture_type_twidget.insertRow(count)
             self.pasture_type_twidget.setItem(count, 0, item)
 
-            item = QTableWidgetItem('1')
-            item.setData(Qt.UserRole, 1)
+            item = QTableWidgetItem(str(being_month))
+            item.setData(Qt.UserRole, being_month)
             self.pasture_type_twidget.setItem(count, 1, item)
 
-            item = QTableWidgetItem('12')
-            item.setData(Qt.UserRole, 12)
+            item = QTableWidgetItem(str(end_month))
+            item.setData(Qt.UserRole, end_month)
             self.pasture_type_twidget.setItem(count, 2, item)
 
-            item = QTableWidgetItem('360')
-            item.setData(Qt.UserRole, 360)
+            item = QTableWidgetItem('90')
+            item.setData(Qt.UserRole, 90)
             self.pasture_type_twidget.setItem(count, 3, item)
 
             count += 1

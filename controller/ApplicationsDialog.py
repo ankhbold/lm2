@@ -3696,8 +3696,7 @@ class ApplicationsDialog(QDialog, Ui_ApplicationsDialog, DatabaseHelper):
     def __is_active_contract(self, person_id):
 
         active_contract_count = self.session.query(ContractSearch).\
-            filter(ContractSearch.person_id == person_id). \
-            filter(ContractSearch.status == 20).count()
+            filter(ContractSearch.person_id == person_id).count()
 
         if active_contract_count == 0:
             return False

@@ -209,10 +209,12 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             .filter(SetRole.user_name == QSettings().value(SettingsConstants.USER)) \
             .filter(SetRole.is_active == True).one()
 
-        if officer.position != 2:
-            self.finish_button.setVisible(False)
-        else:
+        if officer.position == 2:
             self.finish_button.setVisible(True)
+        elif officer.position == 1:
+            self.finish_button.setVisible(True)
+        else:
+            self.finish_button.setVisible(False)
         # self.__disable_all()
         #
         # if UserRight.cadastre_update in user_rights:
@@ -1245,6 +1247,8 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
     def __validate_person_name(self, text):
 
+        if not text:
+            text = ''
         if len(text) <= 0:
             return False
 
@@ -1393,7 +1397,8 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             if new_text != text:
                 self.middle_name_edit.setText(new_text)
                 return
-
+            if not new_text:
+                new_text = ''
             if not self.__validate_person_name(new_text):
                 self.middle_name_edit.setStyleSheet(Constants.ERROR_LINEEDIT_STYLESHEET)
 
@@ -2201,7 +2206,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
             if new_text is not text:
                 self.personal_id_edit.setText(new_text)
-                # return
 
             if not self.__validate_private_person_id(text):
                 valid = False
@@ -2226,7 +2230,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
             if new_text != text:
                 self.middle_name_edit.setText(new_text)
-                return
 
             if not self.__validate_company_name(text):
                 valid = False
@@ -2239,7 +2242,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             new_text = self.__auto_correct_person_name(text)
             if new_text != text:
                 self.middle_name_edit.setText(new_text)
-                return
 
             if not self.__validate_person_name(new_text):
                 valid = False
@@ -2257,7 +2259,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
             if new_text != text:
                 self.name_edit.setText(new_text)
-                return
 
             if not self.__validate_company_name(text):
                 valid = False
@@ -2270,7 +2271,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             new_text = self.__auto_correct_person_name(text)
             if new_text != text:
                 self.name_edit.setText(new_text)
-                return
 
             if not self.__validate_person_name(new_text):
                 valid = False
@@ -2288,7 +2288,6 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
 
             if new_text != text:
                 self.first_name_edit.setText(new_text)
-                return
 
             if not self.__validate_company_name(text):
                 valid = False
@@ -2301,7 +2300,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             new_text = self.__auto_correct_person_name(text)
             if new_text != text:
                 self.first_name_edit.setText(new_text)
-                return
+
 
             if not self.__validate_person_name(new_text):
                 valid = False
@@ -2342,6 +2341,8 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
                 valid = False
                 street_error = self.tr("Contract end date error!.")
                 error_message = error_message + "\n \n" + street_error
+        if not valid:
+            valid = False
 
         return valid, error_message
 
@@ -2349,6 +2350,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
     def on_finish_button_clicked(self):
 
         validaty_result = self.__validaty_of_ubparcel()
+
         if not validaty_result[0]:
             log_measage = validaty_result[1]
 
@@ -2370,6 +2372,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             self.__save_status()
             self.__save_decision()
             self.__save_contract_owner()
+            # return
             self.session.commit()
 
     def __multi_owner_save(self, person_id):
@@ -2384,6 +2387,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         row = 0
         for item_row in result:
             person_id = item_row[0]
+
             name = item_row[1]
             first_name = item_row[2]
 
@@ -2398,11 +2402,9 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             bs_person.name = name
             bs_person.first_name = first_name
 
-            if person_count == 0:
-                self.session.add(bs_person)
+            self.session.add(bs_person)
 
             self.session.flush()
-
 
     def __generate_record_number(self):
 
@@ -2594,12 +2596,13 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         row = 0
         for item_row in result:
             person_id = item_row[0]
+
             person = self.session.query(BsPerson).filter(BsPerson.person_id == person_id).one()
             role_ref = self.session.query(ClPersonRole).filter_by(
                 code=Constants.APPLICANT_ROLE_CODE).one()
 
             app_person_role = CtApplicationPersonRole()
-            app_person_role.application = self.application.app_no
+            app_person_role.application = application.app_no
             app_person_role.share = Decimal(0)
             app_person_role.role = Constants.APPLICANT_ROLE_CODE
             app_person_role.role_ref = role_ref
@@ -2607,7 +2610,7 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
             app_person_role.person_ref = person
             app_person_role.main_applicant = True
 
-            self.application.stakeholders.append(app_person_role)
+            application.stakeholders.append(app_person_role)
 
     def __save_person(self):
 

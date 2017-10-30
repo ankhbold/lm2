@@ -852,6 +852,18 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
             join(AuLevel2, CaPastureMonitoring.geometry.ST_Within(AuLevel2.geometry)).\
             filter(CaPastureMonitoring.point_id.notin_(subquery)).\
             filter(AuLevel2.code == soum_code).all()
+        if self.pug_boundary_cbox.currentIndex() != -1:
+            pug_id = self.pug_boundary_cbox.itemData(self.pug_boundary_cbox.currentIndex(), Qt.UserRole)
+            if pug_id != -1:
+                pug_count = self.session.query(CaPUGBoundary).filter(CaPUGBoundary.code == pug_id).count()
+                if pug_count == 1:
+                    pug = self.session.query(CaPUGBoundary).filter(CaPUGBoundary.code == pug_id).one()
+                monitoring_points = self.session.query(CaPastureMonitoring). \
+                    join(AuLevel2, CaPastureMonitoring.geometry.ST_Within(AuLevel2.geometry)). \
+                    join(CaPUGBoundary, CaPastureMonitoring.geometry.ST_Within(CaPUGBoundary.geometry)). \
+                    filter(CaPastureMonitoring.point_id.notin_(subquery)). \
+                    filter(CaPUGBoundary.code == pug_id). \
+                    filter(AuLevel2.code == soum_code).all()
 
         for monitoring_point in monitoring_points:
             count = self.point_twidget.rowCount()
@@ -1777,11 +1789,12 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
                     live_stock_type = live_stock_item.data(Qt.UserRole)
 
                     value_item = self.live_stock_twidget.item(row, column + 1).text()
-                    value = int(value_item)
+
+                    value = float(value_item)
                     live_stock_convert = self.session.query(PsLiveStockConvert). \
                         filter(PsLiveStockConvert.live_stock_type == live_stock_type).one()
                     sheep_convert_value = live_stock_convert.convert_value
-                    live_stock_convert_value = value*sheep_convert_value
+                    live_stock_convert_value = value*float(sheep_convert_value)
 
                     all_value = all_value + live_stock_convert_value
 

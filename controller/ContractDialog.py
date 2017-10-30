@@ -148,12 +148,13 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
 
         end = PluginUtils.convert_qt_date_to_python(new_date).date()
         begin = self.contract.contract_begin
-        age_in_years = end.year - begin.year - ((end.month, end.day) < (begin.month, begin.day))
-        months = (end.month - begin.month - (end.day < begin.day)) % 12
-        age = end - begin
-        age_in_days = age.days
 
-        self.contract_duration_edit.setText(str(age_in_years))
+        if end and begin:
+            age_in_years = end.year - begin.year - ((end.month, end.day) < (begin.month, begin.day))
+            months = (end.month - begin.month - (end.day < begin.day)) % 12
+            age = end - begin
+            age_in_days = age.days
+            self.contract_duration_edit.setText(str(age_in_years))
 
     def __setup_validators(self):
 
@@ -596,18 +597,27 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
 
     def __calculate_age(self):
 
-        begin = self.contract.contract_begin
-        end = PluginUtils.convert_qt_date_to_python(self.contract_end_date.date()).date()
-        age_in_years = end.year - begin.year - ((end.month, end.day) < (begin.month, begin.day))
-        months = (end.month - begin.month - (end.day < begin.day)) % 12
-        age = end - begin
-        age_in_days = age.days
-
-        if not age_in_years > 0:
+        duration = int(self.contract_duration_edit.text())
+        if not duration > 0:
             PluginUtils.show_error(self, self.tr("End Date Error"),
-                                   self.tr("Its not allowed to contract date."))
+                                       self.tr("Its not allowed to contract date."))
             return False
         return True
+        # begin = self.contract.contract_begin
+        # end = PluginUtils.convert_qt_date_to_python(self.contract_end_date.date()).date()
+        # print begin
+        # print end
+        # # if end and begin:
+        # age_in_years = end.year - begin.year - ((end.month, end.day) < (begin.month, begin.day))
+        # months = (end.month - begin.month - (end.day < begin.day)) % 12
+        # age = end - begin
+        # age_in_days = age.days
+        #
+        # if not age_in_years > 0:
+        #     PluginUtils.show_error(self, self.tr("End Date Error"),
+        #                            self.tr("Its not allowed to contract date."))
+        #     return False
+        # return True
         # if age_in_years >= 80:
         #     return 80, 'years or older'
         # if age_in_years >= 12:

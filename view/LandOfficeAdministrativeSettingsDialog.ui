@@ -67,7 +67,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="widget">
     <attribute name="title">
@@ -1470,12 +1470,12 @@
       <rect>
        <x>30</x>
        <y>65</y>
-       <width>151</width>
+       <width>111</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Aimag</string>
+      <string>Begin Date</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_29">
@@ -1483,12 +1483,12 @@
       <rect>
        <x>150</x>
        <y>65</y>
-       <width>151</width>
+       <width>116</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Aimag</string>
+      <string>End Date</string>
      </property>
     </widget>
     <widget class="QDateEdit" name="cpage_end_date">
@@ -2845,9 +2845,9 @@
     <widget class="QPushButton" name="layer_view_button">
      <property name="geometry">
       <rect>
-       <x>681</x>
+       <x>675</x>
        <y>270</y>
-       <width>75</width>
+       <width>104</width>
        <height>23</height>
       </rect>
      </property>
@@ -2858,9 +2858,9 @@
     <widget class="QPushButton" name="print_button">
      <property name="geometry">
       <rect>
-       <x>681</x>
+       <x>675</x>
        <y>300</y>
-       <width>75</width>
+       <width>104</width>
        <height>23</height>
       </rect>
      </property>
@@ -3051,12 +3051,12 @@
        <rect>
         <x>102</x>
         <y>13</y>
-        <width>65</width>
+        <width>76</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Begin Date</string>
+       <string>Begin</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_62">
@@ -3064,12 +3064,12 @@
        <rect>
         <x>185</x>
         <y>13</y>
-        <width>65</width>
+        <width>76</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>End Date</string>
+       <string>End</string>
       </property>
      </widget>
      <widget class="QDateEdit" name="begin_date">
@@ -3107,12 +3107,12 @@
        <rect>
         <x>9</x>
         <y>14</y>
-        <width>111</width>
+        <width>86</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Certificate No</string>
+       <string>No</string>
       </property>
      </widget>
      <widget class="QPushButton" name="connect_cert_button">
@@ -3156,7 +3156,7 @@
        <rect>
         <x>265</x>
         <y>13</y>
-        <width>86</width>
+        <width>101</width>
         <height>16</height>
        </rect>
       </property>

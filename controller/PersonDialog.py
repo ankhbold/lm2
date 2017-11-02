@@ -866,7 +866,7 @@ class PersonDialog(QDialog, Ui_PersonDialog, DatabaseHelper):
             phone_numbers = current_phone.split(",")
 
             for number in phone_numbers:
-                if len(number) != 8:
+                if len(number) != 8 and len(number) != 6:
                     self.phone_edit.setStyleSheet(Constants.ERROR_LINEEDIT_STYLESHEET)
                     valid = False
 

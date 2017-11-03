@@ -26,6 +26,8 @@ class ParcelSearch(Base):
     address_streetname = Column(String)
     address_khashaa = Column(String)
     au2_code = Column(String)
+    contract_status = Column(Integer)
+    record_status = Column(Integer)
 
     landuse = Column(Integer, ForeignKey('cl_landuse_type.code'))
     landuse_ref = relationship("ClLanduseType")

@@ -1040,7 +1040,7 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
                          "LEFT JOIN s{0}.ct_ownership_record record on rec_app.record = record.record_no " \
                          "LEFT JOIN s{0}.ct_decision_application dec_app on dec_app.application = application.app_no " \
                          "LEFT JOIN admin_units.au_level2 au2 on ST_Within(parcel.geometry, au2.geometry) " \
-                         "LEFT JOIN s{0}.ct_decision decision on decision.decision_no = dec_app.application".format(au_level2)  + "\n"
+                         "LEFT JOIN s{0}.ct_decision decision on decision.decision_no = dec_app.decision".format(au_level2)  + "\n"
 
                 sql = sql + select
 
@@ -7633,6 +7633,7 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
             self.mobile_num_edit.setText(person_result.phone)
             self.person_application_num_edit.setText(person_result.app_no)
             self.person_decision_num_edit.setText(person_result.decision_no)
+            self.person_parcel_num_edit.setText(person_result.parcel_id)
             if person_result.contract_no != None:
                 self.person_contract_num_edit.setText(person_result.contract_no)
             else:
@@ -7667,25 +7668,23 @@ class NavigatorWidget(QDockWidget, Ui_NavigatorWidget, DatabaseHelper):
                         #         .filter(ParcelSearch.person_role == 40).filter(ParcelSearch.main_applicant == True).one()
                 elif parcel_result_count == 1:
                     parcel_result = self.session.query(ParcelSearch).filter(ParcelSearch.parcel_id == id).one()
-                else:
-                    parcel_result = self.session.query(TmpParcelSearch).filter(TmpParcelSearch.parcel_id == id).one()
+                    soum_code = parcel_result.au2_code
+                    aimag_code = soum_code[:3]
+                    self.working_l1_cbox.setCurrentIndex(self.working_l1_cbox.findData(aimag_code))
+                    self.working_l2_cbox.setCurrentIndex(self.working_l2_cbox.findData(soum_code))
 
-                soum_code = parcel_result.au2_code
-                aimag_code = soum_code[:3]
-                self.working_l1_cbox.setCurrentIndex(self.working_l1_cbox.findData(aimag_code))
-                self.working_l2_cbox.setCurrentIndex(self.working_l2_cbox.findData(soum_code))
+                    self.parcel_num_edit.setText(parcel_result.parcel_id)
+                    self.geo_id_edit.setText(parcel_result.geo_id)
+                    self.parcel_right_holder_name_edit.setText(parcel_result.first_name)
+                    self.parcel_app_num_edit.setText(parcel_result.app_no)
+                    self.parcel_decision_num_edit.setText(unicode(parcel_result.decision_no))
+                    if parcel_result.contract_no != None:
+                        self.parcel_contract_num_edit.setText(parcel_result.contract_no)
+                    else:
+                        self.parcel_contract_num_edit.setText(parcel_result.record_no)
+                    self.personal_parcel_edit.setText(parcel_result.person_id)
 
-                self.parcel_num_edit.setText(parcel_result.parcel_id)
-                self.geo_id_edit.setText(parcel_result.geo_id)
-                self.parcel_right_holder_name_edit.setText(parcel_result.first_name)
-                self.parcel_app_num_edit.setText(parcel_result.app_no)
-                self.parcel_decision_num_edit.setText(parcel_result.decision_no)
-                if parcel_result.contract_no != None:
-                    self.parcel_contract_num_edit.setText(parcel_result.contract_no)
-                else:
-                    self.parcel_contract_num_edit.setText(parcel_result.record_no)
-                self.personal_parcel_edit.setText(parcel_result.person_id)
-                self.land_use_type_cbox.setCurrentIndex(self.land_use_type_cbox.findData(parcel_result.landuse))
+                    self.land_use_type_cbox.setCurrentIndex(self.land_use_type_cbox.findData(parcel_result.landuse))
             else:
                 parcel_result = self.session.query(TmpParcelSearch).filter(TmpParcelSearch.parcel_id == id).one()
 

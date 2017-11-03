@@ -65,19 +65,17 @@ class UbDocumentViewDelegate(QStyledItemDelegate):
                     n = self.widget.item(index.row(), NAME_COLUMN).data(Qt.UserRole + 1)
                     subdir = self.widget.item(index.row(), NAME_COLUMN).data(Qt.UserRole)
 
+                    ftp.cwd(subdir)
+
                     file_type = str(n.split('.')[-1])
                     file_name = str(n.split('/')[-1])
-                    dir = str(n.split('/')[0])+'/'+str(n.split('/')[1])
-
-                    ftp.cwd(dir)
-
                     view_pdf = open(FilePath.view_file_path(), 'wb')
                     view_png = open(FilePath.view_file_png_path(), 'wb')
-
                     if file_type == FILE_IMAGE:
                         ftp.retrbinary('RETR ' + file_name, view_png.write)
                     else:
                         ftp.retrbinary('RETR ' + file_name, view_pdf.write)
+
                     try:
                         if file_type == FILE_IMAGE:
                             QDesktopServices.openUrl(QUrl.fromLocalFile(FilePath.view_file_png_path()))

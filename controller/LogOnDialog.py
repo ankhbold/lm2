@@ -203,6 +203,18 @@ class LogOnDialog(QDialog, Ui_LogOnDialog):
         if not port.isdigit():
             PluginUtils.show_error(self, self.tr("Wrong Parameter"), self.tr("Enter a valid port number!"))
             return False
+        if not password:
+            PluginUtils.show_error(self, self.tr("Wrong Parameter"), self.tr("Enter a valid password !"))
+            return False
+        if not database:
+            PluginUtils.show_error(self, self.tr("Wrong Parameter"), self.tr("Enter a valid database !"))
+            return False
+        if not user:
+            PluginUtils.show_error(self, self.tr("Wrong Parameter"), self.tr("Enter a valid user !"))
+            return False
+        if not host:
+            PluginUtils.show_error(self, self.tr("Wrong Parameter"), self.tr("Enter a valid host !"))
+            return False
         return True
 
     @pyqtSlot()

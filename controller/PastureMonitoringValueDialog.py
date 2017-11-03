@@ -1789,11 +1789,12 @@ class PastureMonitoringValueDialog(QDialog, Ui_PastureMonitoringValueDialog, Dat
                     live_stock_type = live_stock_item.data(Qt.UserRole)
 
                     value_item = self.live_stock_twidget.item(row, column + 1).text()
-                    value = int(value_item)
+
+                    value = float(value_item)
                     live_stock_convert = self.session.query(PsLiveStockConvert). \
                         filter(PsLiveStockConvert.live_stock_type == live_stock_type).one()
                     sheep_convert_value = live_stock_convert.convert_value
-                    live_stock_convert_value = value*sheep_convert_value
+                    live_stock_convert_value = value*float(sheep_convert_value)
 
                     all_value = all_value + live_stock_convert_value
 

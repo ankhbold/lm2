@@ -2818,13 +2818,13 @@ class ParcelInfoDialog(QDockWidget, Ui_ParcelInfoDialog, DatabaseHelper):
         if doc_id:
 
             try:
-                files = ftp.nlst('ub_archive/' + doc_id)
+                files = ftp.nlst(str(doc_id))
             except error_perm:
                 is_find_doc = True
 
             if is_find_doc:
                 try:
-                    files = ftp.nlst('district_archive/' + doc_id)
+                    files = ftp.nlst(doc_id)
                 except error_perm:
                     is_find_doc = True
 

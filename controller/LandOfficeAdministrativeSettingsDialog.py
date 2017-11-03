@@ -23,11 +23,6 @@ from ..model.ClPositionType import *
 from ..model.ClDecisionLevel import *
 from ..model.ClDocumentRole import *
 from ..model.ClGender import *
-from ..model.ClGrudType import *
-from ..model.ClPastureType import *
-from ..model.ClEmployeeType import *
-from ..model.ClPollutionType import *
-from ..model.ClMemberRole import *
 from ..model.SetCertificate import *
 from ..model.ClPersonRole import *
 from ..model.ClPersonType import *
@@ -37,7 +32,6 @@ from ..model.ClRecordStatus import *
 from ..model.ClRightType import *
 from ..model.ClEquipmentList import *
 from ..model.ClCertificateType import *
-from ..model.ClMortgageStatus import *
 from ..model.SetFeeZone import *
 from ..model.SetBaseFee import *
 from ..model.SetTaxAndPriceZone import *
@@ -1541,12 +1535,12 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         if self.old_codelist_index == -1:
             self.__read_codelist_entries()
         else:
-            # try:
-            self.__save_codelist_entries()
-            # except exc.SQLAlchemyError, e:
-            #     PluginUtils.show_error(None, self.tr("SQL Error"), e.message)
-            #     self.select_codelist_cbox.setCurrentIndex(self.old_codelist_index)
-            #     return
+            try:
+                self.__save_codelist_entries()
+            except exc.SQLAlchemyError, e:
+                PluginUtils.show_error(None, self.tr("SQL Error"), e.message)
+                self.select_codelist_cbox.setCurrentIndex(self.old_codelist_index)
+                return
 
         self.old_codelist_index = idx
 
@@ -1556,7 +1550,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
         self.table_widget.setRowCount(0)
 
         codelist_name = self.select_codelist_cbox.itemData(self.select_codelist_cbox.currentIndex())
-
         codelist_class = self.__codelist_class(codelist_name)
         codelist_entries = self.session.query(codelist_class).order_by(codelist_class.code).all()
         self.table_widget.setRowCount(len(codelist_entries))
@@ -1922,20 +1915,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
             cls = VaTypeStove
         elif table_name == "cl_position_type":
             cls = ClPositionType
-        elif table_name == "cl_grud_type":
-            cls = ClGrudType
-        elif table_name == "cl_pasture_type":
-            cls = ClPastureType
-        elif table_name == "cl_employee_type":
-            cls = ClEmployeeType
-        elif table_name == "cl_member_role":
-            cls = ClMemberRole
-        elif table_name == "cl_user_cancel_reason":
-            cls = ClMemberRole
-        elif table_name == "cl_pollution_type":
-            cls = ClPollutionType
-        elif table_name == "cl_mortgage_status":
-            cls = ClMortgageStatus
         else:
             return None
 
@@ -3513,7 +3492,6 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
         feature_ids = []
         LayerUtils.deselect_all()
-        is_layer = False
         for soum, parcel_array in soums.iteritems():
             layer = LayerUtils.layer_by_data_source("settings", "view_equipment")
 
@@ -3532,12 +3510,11 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
             request.setFilterExpression(exp_string)
 
             feature_ids.append(parcel_array[0])
-            is_layer = True
-        if is_layer:
-            layer.setSelectedFeatures(feature_ids)
 
-            canvas = qgis.utils.iface.mapCanvas()
-            canvas.zoomToSelected(layer)
+        layer.setSelectedFeatures(feature_ids)
+
+        canvas = qgis.utils.iface.mapCanvas()
+        canvas.zoomToSelected(layer)
 
     def __create_equipment_view(self):
 
@@ -4651,14 +4628,10 @@ class LandOfficeAdministrativeSettingsDialog(QDialog, Ui_LandOfficeAdministrativ
 
     def __cpage_cbox(self):
 
-        # self.cpage_twidget.setSelectionMode(QAbstractItemView.SingleSelection)
-        # self.cpage_twidget.setSelectionBehavior(QAbstractItemView.SelectRows)
-        # self.cpage_twidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # self.cpage_twidget.horizontalHeader().setResizeMode(1, QHeaderView.Stretch)
-
-        self.cpage_twidget.setAlternatingRowColors(True)
-        self.cpage_twidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.cpage_twidget.setSelectionMode(QTableWidget.SingleSelection)
+        self.cpage_twidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.cpage_twidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.cpage_twidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.cpage_twidget.horizontalHeader().setResizeMode(1, QHeaderView.Stretch)
 
         self.cpage_register_date.setDate(QDate().currentDate())
         self.cpage_end_date.setDate(QDate().currentDate())

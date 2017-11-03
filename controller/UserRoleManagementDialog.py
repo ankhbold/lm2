@@ -1137,96 +1137,53 @@ class UserRoleManagementDialog(QDialog, Ui_UserRoleManagementDialog):
         item = self.settings_position_twidget.item(cur_row, 0)
         position_code = item.data(Qt.UserRole)
 
-
         position_gruds = self.db_session.query(SetPositionGroupRole).\
             filter(SetPositionGroupRole.position == position_code).all()
-        group_roles = self.db_session.query(ClGroupRole).all()
-        for group_role in group_roles:
-            position_grud_c = self.db_session.query(SetPositionGroupRole). \
-                filter(SetPositionGroupRole.position == position_code). \
-                filter(SetPositionGroupRole.group_role == group_role.code).count()
-            if position_grud_c == 1:
-                position_grud = self.db_session.query(SetPositionGroupRole). \
-                    filter(SetPositionGroupRole.position == position_code).\
-                    filter(SetPositionGroupRole.group_role == group_role.code).one()
-                row = self.settings_right_grud_twidget.rowCount()
-                self.settings_right_grud_twidget.insertRow(row)
 
-                item = QTableWidgetItem(u'{0}'.format(group_role.description_en))
-                item.setData(Qt.UserRole, group_role.code)
-                self.settings_right_grud_twidget.setItem(row, 0, item)
+        for position_grud in position_gruds:
+            group_role = self.db_session.query(ClGroupRole).filter(ClGroupRole.code == position_grud.group_role).one()
+            row = self.settings_right_grud_twidget.rowCount()
+            self.settings_right_grud_twidget.insertRow(row)
 
-                item = QTableWidgetItem(u'{0}'.format(group_role.description))
-                item.setData(Qt.UserRole, group_role.code)
-                self.settings_right_grud_twidget.setItem(row, 1, item)
+            item = QTableWidgetItem(u'{0}'.format(group_role.description_en))
+            item.setData(Qt.UserRole, group_role.code)
+            self.settings_right_grud_twidget.setItem(row, 0, item)
 
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
-                if not position_grud.r_view:
-                    item.setCheckState(Qt.Unchecked)
-                else:
-                    item.setCheckState(Qt.Checked)
-                self.settings_right_grud_twidget.setItem(row, 2, item)
+            item = QTableWidgetItem(u'{0}'.format(group_role.description))
+            item.setData(Qt.UserRole, group_role.code)
+            self.settings_right_grud_twidget.setItem(row, 1, item)
 
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
-                if not position_grud.r_add:
-                    item.setCheckState(Qt.Unchecked)
-                else:
-                    item.setCheckState(Qt.Checked)
-                self.settings_right_grud_twidget.setItem(row, 3, item)
-
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
-                if not position_grud.r_remove:
-                    item.setCheckState(Qt.Unchecked)
-                else:
-                    item.setCheckState(Qt.Checked)
-                self.settings_right_grud_twidget.setItem(row, 4, item)
-
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
-                if not position_grud.r_update:
-                    item.setCheckState(Qt.Unchecked)
-                else:
-                    item.setCheckState(Qt.Checked)
-                self.settings_right_grud_twidget.setItem(row, 5, item)
+            item = QTableWidgetItem()
+            item.setData(Qt.UserRole, group_role.code)
+            if not position_grud.r_view:
+                item.setCheckState(Qt.Unchecked)
             else:
+                item.setCheckState(Qt.Checked)
+            self.settings_right_grud_twidget.setItem(row, 2, item)
 
-                row = self.settings_right_grud_twidget.rowCount()
-                self.settings_right_grud_twidget.insertRow(row)
-
-                item = QTableWidgetItem(u'{0}'.format(group_role.description_en))
-                item.setData(Qt.UserRole, group_role.code)
-                self.settings_right_grud_twidget.setItem(row, 0, item)
-
-                item = QTableWidgetItem(u'{0}'.format(group_role.description))
-                item.setData(Qt.UserRole, group_role.code)
-                self.settings_right_grud_twidget.setItem(row, 1, item)
-
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
+            item = QTableWidgetItem()
+            item.setData(Qt.UserRole, group_role.code)
+            if not position_grud.r_add:
                 item.setCheckState(Qt.Unchecked)
+            else:
+                item.setCheckState(Qt.Checked)
+            self.settings_right_grud_twidget.setItem(row, 3, item)
 
-                self.settings_right_grud_twidget.setItem(row, 2, item)
-
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
+            item = QTableWidgetItem()
+            item.setData(Qt.UserRole, group_role.code)
+            if not position_grud.r_remove:
                 item.setCheckState(Qt.Unchecked)
+            else:
+                item.setCheckState(Qt.Checked)
+            self.settings_right_grud_twidget.setItem(row, 4, item)
 
-                self.settings_right_grud_twidget.setItem(row, 3, item)
-
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
+            item = QTableWidgetItem()
+            item.setData(Qt.UserRole, group_role.code)
+            if not position_grud.r_update:
                 item.setCheckState(Qt.Unchecked)
-
-                self.settings_right_grud_twidget.setItem(row, 4, item)
-
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, group_role.code)
-                item.setCheckState(Qt.Unchecked)
-
-                self.settings_right_grud_twidget.setItem(row, 5, item)
+            else:
+                item.setCheckState(Qt.Checked)
+            self.settings_right_grud_twidget.setItem(row, 5, item)
 
     def __start_fade_out_timer(self):
 
@@ -1370,71 +1327,34 @@ class UserRoleManagementDialog(QDialog, Ui_UserRoleManagementDialog):
         for row in range(self.settings_right_grud_twidget.rowCount()):
             group_role = self.settings_right_grud_twidget.item(row, 0).data(Qt.UserRole)
 
-            position_gruds_c = self.db_session.query(SetPositionGroupRole). \
+            position_gruds = self.db_session.query(SetPositionGroupRole).\
                 filter(SetPositionGroupRole.position == position_code). \
-                filter(SetPositionGroupRole.group_role == group_role).count()
-            if position_gruds_c == 1:
-                position_gruds = self.db_session.query(SetPositionGroupRole).\
-                    filter(SetPositionGroupRole.position == position_code). \
-                    filter(SetPositionGroupRole.group_role == group_role).one()
+                filter(SetPositionGroupRole.group_role == group_role).one()
 
-                check_view_item = self.settings_right_grud_twidget.item(row, 2)
-                check_add_item = self.settings_right_grud_twidget.item(row, 3)
-                check_delete_item = self.settings_right_grud_twidget.item(row, 4)
-                check_update_item = self.settings_right_grud_twidget.item(row, 5)
+            check_view_item = self.settings_right_grud_twidget.item(row, 2)
+            check_add_item = self.settings_right_grud_twidget.item(row, 3)
+            check_delete_item = self.settings_right_grud_twidget.item(row, 4)
+            check_update_item = self.settings_right_grud_twidget.item(row, 5)
 
-                if check_view_item.checkState() == Qt.Checked:
-                    position_gruds.r_view = True
-                else:
-                    position_gruds.r_view = False
-
-                if check_add_item.checkState() == Qt.Checked:
-                    position_gruds.r_add = True
-                else:
-                    position_gruds.r_add = False
-
-                if check_delete_item.checkState() == Qt.Checked:
-                    position_gruds.r_remove = True
-                else:
-                    position_gruds.r_remove = False
-
-                if check_update_item.checkState() == Qt.Checked:
-                    position_gruds.r_update = True
-                else:
-                    position_gruds.r_update = False
+            if check_view_item.checkState() == Qt.Checked:
+                position_gruds.r_view = True
             else:
-                position_gruds = SetPositionGroupRole()
+                position_gruds.r_view = False
 
-                position_gruds.group_role = group_role
-                position_gruds.position = position_code
+            if check_add_item.checkState() == Qt.Checked:
+                position_gruds.r_add = True
+            else:
+                position_gruds.r_add = False
 
-                check_view_item = self.settings_right_grud_twidget.item(row, 2)
-                check_add_item = self.settings_right_grud_twidget.item(row, 3)
-                check_delete_item = self.settings_right_grud_twidget.item(row, 4)
-                check_update_item = self.settings_right_grud_twidget.item(row, 5)
+            if check_delete_item.checkState() == Qt.Checked:
+                position_gruds.r_remove = True
+            else:
+                position_gruds.r_remove = False
 
-                if check_view_item.checkState() == Qt.Checked:
-                    position_gruds.r_view = True
-                else:
-                    position_gruds.r_view = False
-
-                if check_add_item.checkState() == Qt.Checked:
-                    position_gruds.r_add = True
-                else:
-                    position_gruds.r_add = False
-
-                if check_delete_item.checkState() == Qt.Checked:
-                    position_gruds.r_remove = True
-                else:
-                    position_gruds.r_remove = False
-
-                if check_update_item.checkState() == Qt.Checked:
-                    position_gruds.r_update = True
-                else:
-                    position_gruds.r_update = False
-
-                self.db_session.add(position_gruds)
-
+            if check_update_item.checkState() == Qt.Checked:
+                position_gruds.r_update = True
+            else:
+                position_gruds.r_update = False
 
     @pyqtSlot()
     def on_apply_button_clicked(self):

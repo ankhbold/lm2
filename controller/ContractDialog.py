@@ -458,14 +458,13 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             restrictions = DatabaseUtils.working_l2_code()
             user = DatabaseUtils.current_user()
             currect_user = user.position
-            if restrictions[3:] == '01':
-                self.print_officer_cbox.setDisabled(False)
-                print_officers = self.session.query(SetRole).filter(or_(SetRole.position == 9, SetRole.position == currect_user)).all()
-                for officer in print_officers:
-                    officer_name = officer.surname[:1]+'.'+officer.first_name
-                    self.print_officer_cbox.addItem(officer_name, officer.user_name)
-            else:
-                self.print_officer_cbox.setDisabled(True)
+            # if restrictions[3:] == '01':
+            self.print_officer_cbox.setDisabled(False)
+            print_officers = self.session.query(SetRole).filter(or_(SetRole.position == 9, SetRole.position == currect_user)).all()
+            for officer in print_officers:
+                officer_name = officer.surname[:1]+'.'+officer.first_name
+                self.print_officer_cbox.addItem(officer_name, officer.user_name)
+
             app_contract_count = self.session.query(CtContractApplicationRole).filter(CtContractApplicationRole.contract == self.contract.contract_no).count()
 
             if app_contract_count == 1:
@@ -1963,7 +1962,7 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
 
         if decision_level == 20 or decision_level == 40:
             sum_name_dec = soum.name + u'cум /дүүрэг/-ийн '
-            sum_officer = soum.name + u'cум /дүүрэг/-ийн газрын даамал '
+            sum_officer = soum.name + u'cум /дүүрэг/-ийн газрын алба '
         elif decision_level == 10 or decision_level == 30:
             sum_officer = u'ГХБХБГазрын газрын асуудал эрхэлсэн албан тушаалтан '
         if contact_position is None:
@@ -1979,6 +1978,13 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             company_name = person_surname + u' овогтой ' + person_firstname
         elif person.type == 30 or person.type == 40 or person.type == 60:
             company_name = company_name + u'-н ' + contact_position + u' ' + person_surname + u' овогтой ' + person_firstname
+
+        if self.is_sign_checkbox.isChecked():
+            darga_signature = self.print_officer_cbox.currentText() + u'/......................./'
+            darga_position = u'Газрын албаны дарга '
+        else:
+            darga_signature = ''
+            darga_position = ''
 
         duration_year = self.contract_duration_edit.text()
         context = {
@@ -2020,7 +2026,9 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             'person_id': person.person_id,
             'office_phone': office_phone,
             'parcel_id': parcel_id,
-            'duration_year': duration_year
+            'duration_year': duration_year,
+            'darga_position': darga_position,
+            'darga_signature': darga_signature
         }
 
         tpl.render(context)
@@ -2181,10 +2189,9 @@ class ContractDialog(QDialog, Ui_ContractDialog, DatabaseHelper):
             raise LM2Exception(self.tr("Database Query Error"), self.tr("aCould not execute: {0}").format(e.message))
 
         restrictions = DatabaseUtils.working_l2_code()
-        if restrictions[3:] == '01':
-            officer_name = self.print_officer_cbox.currentText()
-        else:
-            officer_name = officer.surname[:1]+"."+officer.first_name
+        # if restrictions[3:] == '01':
+        officer_name = self.print_officer_cbox.currentText()
+
         item = map_composition.getComposerItemById("officer_name")
         item.setText(officer_name)
         item.adjustSizeToText()
